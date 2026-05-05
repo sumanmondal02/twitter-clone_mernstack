@@ -16,17 +16,14 @@ const app = exp();
 
 const allowedOrigins = [
     "http://localhost:5173",
-    "https://twitter-vercel.app_LINK"
+    process.env.FRONTEND_URL,
 ];
 
 // CORS middleware
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
-    if (
-      allowedOrigins.includes(origin) ||
-      origin.endsWith(".vercel.app")
-    ) {
+    if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     } else {
       console.log("Blocked by CORS:", origin);
@@ -60,7 +57,6 @@ const connectDB = async () => {
         process.exit(1);
     }
 };
-// connectDB();
 
 // Testing API working or not 
 // app.get("/", (req, res) => {

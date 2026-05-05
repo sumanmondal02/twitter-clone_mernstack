@@ -38,11 +38,14 @@ commonRoute.post('/register', upload.single('profileImageUrl'), async (req, res,
         if (!userObj.email || !userObj.password) {
             return res.status(400).json({ message: "Email and password are required" });
         }
-        const existingUser = await UserModel.findOne({email: userObj.email});
+        const existingUser = await UserModel.findOne({$or: [{email: userObj.email}, {username: userObj.username}]});
         if (existingUser) {
-            return res.status(400).json({ message: "User with this email already exists" });
+            return res.status(400).json({ message: "User with this email or username already exists" });
         }
-        if (req.file) {
+        else if (!userObj.username || !userObj.firstName || !userObj.dob) {
+            return res.status(400).json({ message: "Username, first name and date of birth are required" });
+        }
+        else if (req.file) {
             cloudinaryResult = await uploadToCloudinary(req.file.buffer);
             userObj.profileImageUrl = cloudinaryResult.secure_url;
         } else {
@@ -67,7 +70,10 @@ commonRoute.post('/register', upload.single('profileImageUrl'), async (req, res,
 commonRoute.post("/login", async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    const user = await UserModel.findOne({ email }).select("+password");
+    if (!email || !password) {
+        return res.status(400).json({ message: "Email and password required" });
+    }
+    const user = await UserModel.findOne({ email })
     //user not found
     if (!user) {
       return res.status(404).json({message: "User Not Found, Please check your email"});
@@ -97,7 +103,7 @@ commonRoute.post("/login", async (req, res, next) => {
         res.cookie("token", token, {
         httpOnly: true,
         sameSite: "none",
-        secure: true
+        secure: false, // Set to true in production with HTTPS
         });
 
         res.status(200).json({
@@ -121,10 +127,10 @@ commonRoute.post("/login", async (req, res, next) => {
 commonRoute.post("/logout", (req,res)=>{
     res.clearCookie('token',{
         httpOnly:true,
-        secure:true,
+        secure:false, // Set to true in production with HTTPS
         sameSite:"none"
     });
-    res.status(200).json({message:"Logout successfull"})
+    res.status(200).json({message:"Logout successful"})
 })
 
 //Page Refresh
@@ -133,7 +139,11 @@ commonRoute.get("/check-auth", verifyToken, (req, res) => {
     message: "authenticated",
     payload: {
         id: req.user._id,
-        email: req.user.email
+        email: req.user.email,
+        firstName: req.user.firstName,
+        lastName: req.user.lastName,
+        username: req.user.username,
+        profileImageUrl: req.user.profileImageUrl
     }
   });
 });
@@ -144,8 +154,8 @@ commonRoute.put("/change-password", verifyToken, async(req, res, next)=>{
         //get email, old password and new password from req body
         const {currentPassword, newPassword} = req.body;
         //find user by email from decoded token
-        const email = req.user?.email;
-        const user = await UserModel.findOne({email:email});
+        // const email = req.user?.email;
+        const user = await UserModel.findById(req.user.id); // already verified by token, so directly using id
         if(!user){
             return res.status(404).json({message:"User not found"})
         }
@@ -181,14 +191,16 @@ commonRoute.put("/change-password", verifyToken, async(req, res, next)=>{
     }
 })
 
+// Account Reactivation
 commonRoute.post("/reactivate", async (req, res, next) => {
     try{
-         const { email, password } = req.body
+        const { email, password } = req.body
         const user = await UserModel.findOne({ email })
         if (!user) return res.status(404).json({ message: "User not found" })
+        if (!user.isDeactivated) return res.status(400).json({ message: "Account already active" });
+        if (user.isBlocked) return res.status(403).json({ message: "Account is blocked, contact support" })
         const isMatch = await compare(password, user.password)
         if (!isMatch) return res.status(401).json({ message: "Invalid credentials" })
-        if (user.isBlocked) return res.status(403).json({ message: "Account is blocked, contact support" })
         await UserModel.findByIdAndUpdate(user._id, { isDeactivated: false })
         res.status(200).json({ message: "Account reactivated successfully. Please login again." })
     } catch (err) {

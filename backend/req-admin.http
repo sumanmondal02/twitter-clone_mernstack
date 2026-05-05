@@ -1,0 +1,12 @@
+GET http://localhost:6435/admin-api/users
+
+
+###
+PATCH http://localhost:6435/admin-api/users/69f9a348c6a94e6d9627d612/block
+
+###
+PATCH http://localhost:6435/admin-api/users/69f9a348c6a94e6d9627d612/unblock
+
+
+###
+DELETE http://localhost:6435/admin-api/users/69f9a348c6a94e6d9627d612   

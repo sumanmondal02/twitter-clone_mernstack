@@ -5,7 +5,7 @@ export const upload = multer({
   storage: multer.memoryStorage(),
   //to avoid RAM overflow
   limits: {
-    fileSize: 45 * 1024 * 1024, // 45MB
+    fileSize: 25 * 1024 * 1024, // 25MB
   },
   //for security validation
   fileFilter: (req, file, cb) => {
