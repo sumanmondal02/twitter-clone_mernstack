@@ -7,6 +7,7 @@ import {userRoute} from "./APIs/userRoute.js";
 import {postRoute} from "./APIs/postRoute.js";
 import {adminRoute} from "./APIs/adminRoute.js";
 import {commonRoute} from "./APIs/commonRoute.js";
+import { notificationRoute } from "./APIs/notificationRoute.js"
 import {errorHandler} from './middleware/verifytoken.js'
 
 config();
@@ -43,6 +44,7 @@ app.use(exp.json());
 app.use("/user-api", userRoute) 
 app.use("/post-api", postRoute)
 app.use("/admin-api", adminRoute)
+app.use("/notification-api", notificationRoute)
 app.use("/auth", commonRoute)
 
 // connect to MongoDB

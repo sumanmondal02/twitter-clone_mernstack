@@ -65,6 +65,14 @@ const postSchema = new Schema({
         type: String,
         default: null
     },
+    isEdited: {
+        type: Boolean,
+        default: false
+    },
+    editedAt: {
+        type: Date,
+        default: null
+    },
 },
 {
     timestamps: true,

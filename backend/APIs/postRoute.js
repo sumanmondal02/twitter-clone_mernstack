@@ -1,36 +1,83 @@
 import exp from 'express'
 import { verifyToken } from '../middlewares/verifyToken.js'
 import { PostModel } from '../models/PostModel.js'
-import { UserModel } from "../models/UserModel.js";
-import { get } from 'mongoose';
-
+import { UserModel } from '../models/UserModel.js'
+import { upload } from '../config/multer.js'
+import { uploadToCloudinary } from '../config/cloudinaryUpload.js'
+import cloudinary from '../config/cloudinary.js'
+import { NotificationModel } from '../models/NotificationModel.js'
+ 
 export const postRoute = exp.Router()
-
+ 
 // Create a new post
-postRoute.post("/createpost", verifyToken, async (req, res, next) => {
+postRoute.post("/createpost", verifyToken, upload.single('mediaUrl'), async (req, res, next) => {
+    let cloudinaryResult = null;
     try {
         const userId = req.user.id;
-        // manually verify user exists and is not blocked — we need to check isBlocked before allowing post creation, but verifyToken doesn't check that
-        const user = await UserModel.findById(userId);
-        if (!user || user.isBlocked) {
-            return res.status(403).json({ message: "User not found or is blocked" });
-        }
-        // taking what is needed from req.body instead of spreading everything
-        const { description, mediaUrl } = req.body;
-
-        if (!description) {
+        const { description } = req.body;
+ 
+        if (!description || description.trim() === "") {
             return res.status(400).json({ message: "Description is required" });
         }
-
+ 
+        let mediaUrl = null;
+        if (req.file) {
+            cloudinaryResult = await uploadToCloudinary(req.file.buffer);
+            mediaUrl = cloudinaryResult.secure_url;
+        }
+ 
         const newPost = new PostModel({
             userId: userId,
             description: description,
-            mediaUrl: mediaUrl || null
+            mediaUrl: mediaUrl
         });
-
+ 
         await newPost.save();
-
+ 
         return res.status(201).json({ message: "Post created successfully", payload: newPost });
+ 
+    } catch (err) {
+        if (cloudinaryResult?.public_id) {
+            await cloudinary.uploader.destroy(cloudinaryResult.public_id);
+        }
+        next(err);
+    }
+});
+
+// EDIT A POST — only owner can edit, only description can be changed
+postRoute.patch('/editpost/:id', verifyToken, async (req, res, next) => {
+    try {
+        const postId = req.params.id;
+        const userId = req.user.id;
+        const { description } = req.body;
+
+        if (!description || description.trim() === "") {
+            return res.status(400).json({ message: "Description cannot be empty" });
+        }
+
+        const postObj = await PostModel.findById(postId);
+
+        if (!postObj) {
+            return res.status(404).json({ message: "Post not found" });
+        }
+        if (postObj.isDeleted) {
+            return res.status(400).json({ message: "Cannot edit a deleted post" });
+        }
+        if (postObj.userId.toString() !== userId.toString()) {
+            return res.status(403).json({ message: "Not authorized to edit this post" });
+        }
+
+        const updated = await PostModel.findByIdAndUpdate(
+            postId,
+            {
+                description: description.trim(),
+                isEdited: true,
+                editedAt: new Date()
+            },
+            { new: true, runValidators: true }
+        );
+
+        return res.status(200).json({ message: "Post updated successfully", payload: updated });
 
     } catch (err) {
         next(err);
@@ -41,26 +88,49 @@ postRoute.post("/createpost", verifyToken, async (req, res, next) => {
 postRoute.get('/viewpost/:id', verifyToken, async (req, res, next) => {
     try {
         const postId = req.params.id;
-
-        const postObj = await PostModel.findById(postId).populate("userId", "username firstName lastName profileImageUrl");
-
+ 
+        const postObj = await PostModel.findById(postId)
+            .populate("userId", "username firstName lastName profileImageUrl");
+ 
         if (!postObj) {
             return res.status(404).json({ message: "Post not found" });
         }
-
+ 
         if (postObj.isDeleted === true) {
-            return res.status(404).json({ message: "The post is deleted by the user" });
+            return res.status(404).json({ message: "This post has been deleted" });
         }
-
+ 
         const postOwner = await UserModel.findById(postObj.userId);
+        if (!postOwner || postOwner.isDeactivated || postOwner.isBlocked) {
+            return res.status(403).json({ message: "Cannot view this post" });
+        }
+ 
+        return res.status(200).json({ message: "Post fetched successfully", payload: postObj });
+ 
+    } catch (err) {
+        next(err);
+    }
+});
 
-        if (postOwner.isDeactivated || postOwner.isBlocked) {
-        return res.status(403).json({
-            message: "Cannot view this post"
-        });
+// GET POST COUNT BY USERNAME — for profile page stats
+postRoute.get('/count/:username', verifyToken, async (req, res, next) => {
+    try {
+        const user = await UserModel.findOne({ username: req.params.username });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        if (user.isBlocked || user.isDeactivated) {
+            return res.status(403).json({ message: "This account is unavailable" });
         }
 
-        return res.status(200).json({ message: "Post fetched successfully", payload: postObj });
+        // countDocuments is much cheaper than fetching all posts
+        const count = await PostModel.countDocuments({
+            userId: user._id,
+            isDeleted: false
+        });
+
+        return res.status(200).json({ message: "Post count fetched", payload: { count } });
 
     } catch (err) {
         next(err);
@@ -72,37 +142,50 @@ postRoute.delete('/delpost/:id', verifyToken, async (req, res, next) => {
     try {
         const postId = req.params.id;
         const userId = req.user.id;
-
+ 
         const postObj = await PostModel.findById(postId);
-
+ 
         if (!postObj || postObj.isDeleted === true) {
             return res.status(404).json({ message: "The post is no longer available" });
         }
-
+ 
         if (postObj.userId.toString() !== userId.toString()) {
             return res.status(403).json({ message: "Not authorized to delete this post" });
         }
-
-        await PostModel.findByIdAndUpdate(postId, { isDeleted: true }, { new: true });
-
-        return res.status(200).json({ message: "Post has been deleted successfully" });
-
+ 
+        await PostModel.findByIdAndUpdate(postId, { isDeleted: true });
+ 
+        return res.status(200).json({ message: "Post deleted successfully" });
+ 
     } catch (err) {
         next(err);
     }
 });
 
 // Recover a soft-deleted post
-postRoute.patch('/recover/:id', verifyToken, async (req,res)=>{
-  const post = await PostModel.findById(req.params.id);
-
-  if (post.userId.toString() !== req.user._id.toString()) {
-    return res.status(403).json({ message: "Not authorized" });
-  }
-
-  await PostModel.findByIdAndUpdate(post._id, { isDeleted: false });
-
-  res.json({ message: "Post recovered" });
+postRoute.patch('/recover/:id', verifyToken, async (req, res, next) => {
+    try {
+        const post = await PostModel.findById(req.params.id);
+ 
+        if (!post) {
+            return res.status(404).json({ message: "Post not found" });
+        }
+ 
+        if (!post.isDeleted) {
+            return res.status(400).json({ message: "Post is not deleted" });
+        }
+ 
+        if (post.userId.toString() !== req.user.id.toString()) {
+            return res.status(403).json({ message: "Not authorized to recover this post" });
+        }
+ 
+        await PostModel.findByIdAndUpdate(post._id, { isDeleted: false });
+ 
+        return res.status(200).json({ message: "Post recovered successfully" });
+ 
+    } catch (err) {
+        next(err);
+    }
 });
 
 // Like a post
@@ -110,39 +193,45 @@ postRoute.patch('/likepost/:id', verifyToken, async (req, res, next) => {
     try {
         const userId = req.user.id;
         const postId = req.params.id;
-
+ 
         const postObj = await PostModel.findById(postId);
-
+ 
         if (!postObj) {
             return res.status(404).json({ message: "Post not found" });
         }
-
         if (postObj.isDeleted === true) {
             return res.status(400).json({ message: "Cannot like a deleted post" });
         }
-
+ 
         const postOwner = await UserModel.findById(postObj.userId);
-
-        if (postOwner.isDeactivated || postOwner.isBlocked) {
-        return res.status(403).json({
-            message: "Cannot interact with this post"
-        });
+        if (!postOwner || postOwner.isDeactivated || postOwner.isBlocked) {
+            return res.status(403).json({ message: "Cannot interact with this post" });
         }
-
+ 
         const alreadyLiked = postObj.likes.some(
             like => like.userId.toString() === userId.toString()
         );
-
         if (alreadyLiked) {
             return res.status(400).json({ message: "You have already liked this post" });
         }
 
-        postObj.likes.push({ userId: userId });
-        postObj.likeCount += 1;
-        await postObj.save();
+        await PostModel.findByIdAndUpdate(postId, {
+            $push: { likes: { userId } },
+            $inc: { likeCount: 1 }
+        });
 
+        //Notification for post owner if someone else liked their post
+        if (postObj.userId.toString() !== userId.toString()) {
+            await NotificationModel.create({
+                toUserId: postObj.userId,
+                fromUserId: userId,
+                type: "like",
+                postId: postId
+            });
+        }
+ 
         return res.status(200).json({ message: "Liked the post" });
-
+ 
     } catch (err) {
         next(err);
     }
@@ -153,46 +242,39 @@ postRoute.patch('/unlikepost/:id', verifyToken, async (req, res, next) => {
     try {
         const userId = req.user.id;
         const postId = req.params.id;
-
+ 
         const postObj = await PostModel.findById(postId);
-
+ 
         if (!postObj) {
             return res.status(404).json({ message: "Post not found" });
         }
-
         if (postObj.isDeleted === true) {
             return res.status(400).json({ message: "Cannot unlike a deleted post" });
         }
-
+ 
         const postOwner = await UserModel.findById(postObj.userId);
-
-        if (postOwner.isDeactivated || postOwner.isBlocked) {
-        return res.status(403).json({
-            message: "Cannot interact with this post"
-        });
+        if (!postOwner || postOwner.isDeactivated || postOwner.isBlocked) {
+            return res.status(403).json({ message: "Cannot interact with this post" });
         }
-
+ 
         const isLiked = postObj.likes.some(
-            like => like.userId.toString() === userId.toString()
-        );
-
+            like => like.userId.toString() === userId.toString());
         if (!isLiked) {
             return res.status(400).json({ message: "You have not liked this post" });
         }
-
-        postObj.likes = postObj.likes.filter(
-            like => like.userId.toString() !== userId.toString()
-        );
-
-        postObj.likeCount -= 1;
-        await postObj.save();
-
+ 
+        await PostModel.findByIdAndUpdate(postId, {
+            $pull: { likes: { userId } },
+            $inc: { likeCount: -1 }
+        });
+ 
         return res.status(200).json({ message: "Unliked the post" });
-
+ 
     } catch (err) {
         next(err);
     }
 });
+
 
 // Add a comment
 postRoute.post('/comment/:id', verifyToken, async (req, res, next) => {
@@ -200,84 +282,85 @@ postRoute.post('/comment/:id', verifyToken, async (req, res, next) => {
         const postId = req.params.id;
         const userId = req.user.id;
         const { comment } = req.body;
-
+ 
         if (!comment || comment.trim() === "") {
             return res.status(400).json({ message: "Comment cannot be empty" });
         }
-
+ 
         const postObj = await PostModel.findById(postId);
-
+ 
         if (!postObj) {
             return res.status(404).json({ message: "Post not found" });
         }
-
         if (postObj.isDeleted === true) {
             return res.status(400).json({ message: "Cannot comment on a deleted post" });
         }
-
+ 
         const postOwner = await UserModel.findById(postObj.userId);
-
-        if (postOwner.isDeactivated || postOwner.isBlocked) {
-        return res.status(403).json({
-            message: "Cannot interact with this post"
-        });
+        if (!postOwner || postOwner.isDeactivated || postOwner.isBlocked) {
+            return res.status(403).json({ message: "Cannot interact with this post" });
         }
-
-        postObj.comments.push({
-            userId: userId,
-            comment: comment,
+ 
+        await PostModel.findByIdAndUpdate(postId, {
+            $push: { comments: { userId, comment: comment.trim() } },
+            $inc: { commentCount: 1 }
         });
-        postObj.commentCount += 1;
-        await postObj.save();
-
+        //Notification for post owner if someone else commented on their post
+        if (postObj.userId.toString() !== userId.toString()) {
+            await NotificationModel.create({
+                toUserId: postObj.userId,
+                fromUserId: userId,
+                type: "comment",
+                postId: postId
+            });
+        }
+ 
         return res.status(200).json({ message: "Comment added successfully" });
-
+ 
     } catch (err) {
         next(err);
     }
 });
+
 
 // Delete a comment
 postRoute.delete('/delcomment/:postId/:commentId', verifyToken, async (req, res, next) => {
     try {
         const { postId, commentId } = req.params;
         const userId = req.user.id;
-
+ 
         const postObj = await PostModel.findById(postId);
-
+ 
         if (!postObj) {
             return res.status(404).json({ message: "Post not found" });
         }
-
+        if (postObj.isDeleted === true) {
+            return res.status(400).json({ message: "Cannot delete comment from a deleted post" });
+        }
+        const postOwner = await UserModel.findById(postObj.userId);
+        if (!postOwner || postOwner.isDeactivated || postOwner.isBlocked) {
+            return res.status(403).json({ message: "Cannot interact with this post" });
+        }
+ 
         const targetComment = postObj.comments.find(
             c => c.id.toString() === commentId.toString()
         );
-
+ 
         if (!targetComment) {
             return res.status(404).json({ message: "Comment not found" });
         }
-
+ 
         if (targetComment.userId.toString() !== userId.toString()) {
             return res.status(403).json({ message: "Not authorized to delete this comment" });
         }
-
-        const postOwner = await UserModel.findById(postObj.userId);
-
-        if (postOwner.isDeactivated || postOwner.isBlocked) {
-        return res.status(403).json({
-            message: "Cannot interact with this post"
+ 
+        await PostModel.findByIdAndUpdate(postId, {
+            $pull: { comments: { _id: commentId } },
+            $inc: { commentCount: -1 }
         });
-        }
-
-        postObj.comments = postObj.comments.filter(
-            c => c.id.toString() !== commentId.toString()
-        );
-
-        postObj.commentCount -= 1;
-        await postObj.save();
-
+ 
         return res.status(200).json({ message: "Comment deleted successfully" });
-
+ 
     } catch (err) {
         next(err);
     }
@@ -286,19 +369,20 @@ postRoute.delete('/delcomment/:postId/:commentId', verifyToken, async (req, res,
 // FOLLOWING FEED — posts from users you follow, newest first
 postRoute.get("/feed", verifyToken, async (req, res, next) => {
     try {
-        const followingIds = req.user.following.map((f) => f.userId);
-
+        const currentUser = await UserModel.findById(req.user.id).select("following");
+        const followingIds = currentUser.following.map((f) => f.userId);
+ 
         if (followingIds.length === 0) {
             return res.status(200).json({
                 message: "You are not following anyone yet",
                 payload: [],
             });
         }
-
+ 
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
-
+ 
         const posts = await PostModel.find({
             userId: { $in: followingIds },
             isDeleted: false,
@@ -307,7 +391,7 @@ postRoute.get("/feed", verifyToken, async (req, res, next) => {
             .skip(skip)
             .limit(limit)
             .populate("userId", "username firstName lastName profileImageUrl");
-
+ 
         return res.status(200).json({
             message: "Feed fetched successfully",
             payload: posts,
@@ -325,18 +409,26 @@ postRoute.get("/explore", verifyToken, async (req, res, next) => {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
-
-        const posts = await PostModel.find({ isDeleted: false })
+ 
+        // Get ids of blocked/deactivated users to exclude their posts entirely
+        const unavailableUsers = await UserModel.find({
+            $or: [{ isBlocked: true }, { isDeactivated: true }]
+        }).select("_id");
+ 
+        const unavailableIds = unavailableUsers.map(u => u._id);
+ 
+        const posts = await PostModel.find({
+            isDeleted: false,
+            userId: { $nin: unavailableIds }
+        })
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
-            .populate({path: "userId", match: { isDeactivated: false, isBlocked: false }, select: "username firstName lastName profileImageUrl"});
-
-        const filteredPosts = posts.filter(p => p.userId !== null);
-
+            .populate("userId", "username firstName lastName profileImageUrl");
+ 
         return res.status(200).json({
             message: "Explore feed fetched successfully",
-            payload: filteredPosts,
+            payload: posts,
             page,
             limit,
         });
@@ -350,11 +442,19 @@ postRoute.get('/likes/:id', verifyToken, async (req, res, next) => {
     try {
         const postObj = await PostModel.findById(req.params.id)
             .populate("likes.userId", "username firstName lastName profileImageUrl");
-
-        if (!postObj || postObj.isDeleted) return res.status(404).json({ message: "Post not found" });
-
+ 
+        if (!postObj || postObj.isDeleted) {
+            return res.status(404).json({ message: "Post not found" });
+        }
+ 
+        const postOwner = await UserModel.findById(postObj.userId);
+        if (!postOwner || postOwner.isDeactivated || postOwner.isBlocked) {
+            return res.status(403).json({ message: "Cannot view this post" });
+        }
         return res.status(200).json({ message: "Likes list", payload: postObj.likes });
-    } catch (err) { next(err); }
+    } catch (err) {
+        next(err);
+    }
 });
 
 // Get comments of a post
@@ -362,9 +462,18 @@ postRoute.get('/comments/:id', verifyToken, async (req, res, next) => {
     try {
         const postObj = await PostModel.findById(req.params.id)
             .populate("comments.userId", "username firstName lastName profileImageUrl");
-
-        if (!postObj || postObj.isDeleted) return res.status(404).json({ message: "Post not found" });
-
+ 
+        if (!postObj || postObj.isDeleted) {
+            return res.status(404).json({ message: "Post not found" });
+        }
+ 
+        const postOwner = await UserModel.findById(postObj.userId);
+        if (!postOwner || postOwner.isDeactivated || postOwner.isBlocked) {
+            return res.status(403).json({ message: "Cannot view this post" });
+        }
+ 
         return res.status(200).json({ message: "Comments list", payload: postObj.comments });
-    } catch (err) { next(err); }
+    } catch (err) {
+        next(err);
+    }
 });
