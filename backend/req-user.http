@@ -1,2 +1,337 @@
-### Testing 
-GET http://localhost:6435/
+### ── GET PROFILE ─────────────────────────
+
+### 1. Get own profile (replace USERNAME with your username)
+GET http://localhost:6435/user-api/profile/__sumanmondal
+Content-Type: application/json
+
+###
+
+### 2. Get another user's profile
+GET http://localhost:6435/user-api/profile/priya_samanta
+Content-Type: application/json
+
+###
+
+### 3. Get profile of non-existent user (should return 404)
+GET http://localhost:6435/user-api/profile/ghostuser999
+Content-Type: application/json
+
+###
+
+### 4. Get profile of blocked user (should return 403)
+GET http://localhost:6435/user-api/profile/__sumanmondal
+Content-Type: application/json
+
+###
+
+### 5. Get profile of deactivated user (should return 403)
+GET http://localhost:6435/user-api/profile/__sumanmondal
+Content-Type: application/json
+
+###
+
+
+### ── UPDATE PROFILE ──────────────────────
+
+
+### 6. Update profile — text fields only (no image)
+PUT http://localhost:6435/user-api/updateProfile
+Content-Type: application/json
+
+{
+    "firstName": "UpdatedFirst",
+    "lastName": "UpdatedLast",
+    "username": "newusername",
+    "bio": "This is my updated bio",
+    "gender": "male"
+}
+
+###
+
+### 7. Update only bio (partial update — other fields stay the same)
+PUT http://localhost:6435/user-api/updateProfile
+Content-Type: application/json
+
+{
+    "bio": "I am the Admin"
+}
+
+###
+
+### 8. Update username to one that's already taken (should return 409)
+PUT http://localhost:6435/user-api/updateProfile
+Content-Type: application/json
+
+{
+    "username": "existingusername"
+}
+
+###
+
+### NOTE: To test profile image upload, use a REST client that supports
+### multipart/form-data — send as form-data with key "profileImageUrl"
+### and value as an image file (JPG or PNG only)
+
+
+### ── DELETE PROFILE IMAGE ─────────────────
+
+
+### 9. Delete profile image
+DELETE http://localhost:6435/user-api/profileImage
+Content-Type: application/json
+
+###
+
+### 10. Delete profile image when none exists (should return 400)
+### (Run after deleting it once)
+DELETE http://localhost:6435/user-api/profileImage
+Content-Type: application/json
+
+###
+
+
+### ── DEACTIVATE ACCOUNT ──────────────────
+
+
+### 11. Deactivate own account with correct password
+PUT http://localhost:6435/user-api/deactivate
+Content-Type: application/json
+
+{
+    "password": "admin1"
+}
+
+###
+
+### 12. Deactivate with wrong password (should return 401)
+PUT http://localhost:6435/user-api/deactivate
+Content-Type: application/json
+
+{
+    "password": "WrongPassword"
+}
+
+###
+
+### 13. Deactivate without password field (should return 400)
+PUT http://localhost:6435/user-api/deactivate
+Content-Type: application/json
+
+{}
+
+###
+
+
+### ── FOLLOW A USER ───────────────────────
+
+
+### 14. Follow a user (replace USER_ID with target user's _id)
+POST http://localhost:6435/user-api/follow/69faeac33c7351861a94b13a
+Content-Type: application/json
+
+###
+
+### 15. Follow yourself (should return 400)
+POST http://localhost:6435/user-api/follow/69faedacd45530b84f0b2945
+Content-Type: application/json
+
+###
+
+### 16. Follow a user you already follow (should return 400)
+POST http://localhost:6435/user-api/follow/69faeac33c7351861a94b13a
+Content-Type: application/json
+
+###
+
+### 17. Follow a blocked/deactivated user (should return 403)
+POST http://localhost:6435/user-api/follow/69faeac33c7351861a94b13a
+Content-Type: application/json
+
+###
+
+### 18. Follow non-existent user (should return 404)
+POST http://localhost:6435/user-api/follow/000000000000000000000000
+Content-Type: application/json
+
+###
+
+
+### ── UNFOLLOW A USER ─────────────────────
+
+
+### 19. Unfollow a user you follow (replace USER_ID)
+DELETE http://localhost:6435/user-api/unfollow/69faeac33c7351861a94b13a
+Content-Type: application/json
+
+###
+
+### 20. Unfollow yourself (should return 400)
+DELETE http://localhost:6435/user-api/unfollow/YOUR_OWN_USER_ID
+Content-Type: application/json
+
+###
+
+### 21. Unfollow a user you don't follow (should return 400)
+DELETE http://localhost:6435/user-api/unfollow/69faeac33c7351861a94b13a
+Content-Type: application/json
+
+###
+
+### 22. Unfollow non-existent user (should return 404)
+DELETE http://localhost:6435/user-api/unfollow/000000000000000000000000
+Content-Type: application/json
+
+###
+
+
+### ── REMOVE A FOLLOWER ───────────────────
+
+
+### 23. Remove someone from your followers list (replace FOLLOWER_USER_ID)
+DELETE http://localhost:6435/user-api/removeFollower/69faedacd45530b84f0b2945
+Content-Type: application/json
+
+###
+
+### 24. Remove yourself as follower (should return 400)
+DELETE http://localhost:6435/user-api/removeFollower/69faeac33c7351861a94b13a
+Content-Type: application/json
+
+###
+
+### 25. Remove someone who is not your follower (should return 400)
+DELETE http://localhost:6435/user-api/removeFollower/69faeac33c7351861a94b13a
+Content-Type: application/json
+
+###
+
+
+### ── FOLLOWERS LIST (own) ────────────────
+
+
+### 26. Get your own followers list
+GET http://localhost:6435/user-api/followerslist
+Content-Type: application/json
+
+###
+
+
+### ── FOLLOWING LIST (own) ────────────────
+
+
+### 27. Get your own following list
+GET http://localhost:6435/user-api/followinglist
+Content-Type: application/json
+
+###
+
+
+### ── FOLLOWERS LIST (another user) ───────
+
+
+### 28. Get followers list of another user by username
+GET http://localhost:6435/user-api/followerslist/__sumanmondal
+Content-Type: application/json
+
+###
+
+### 29. Get followers list of blocked/deactivated user (should return 403)
+GET http://localhost:6435/user-api/followerslist/blockedusername
+Content-Type: application/json
+
+###
+
+### 30. Get followers list of non-existent user (should return 404)
+GET http://localhost:6435/user-api/followerslist/ghostuser999
+Content-Type: application/json
+
+###
+
+
+### ── FOLLOWING LIST (another user) ───────
+
+
+### 31. Get following list of another user by username
+GET http://localhost:6435/user-api/followinglist/__sumanmondal
+Content-Type: application/json
+
+###
+
+### 32. Get following list of blocked/deactivated user (should return 403)
+GET http://localhost:6435/user-api/followinglist/blockedusername
+Content-Type: application/json
+
+###
+
+
+### ── SEARCH USERS ────────────────────────
+
+
+### 33. Search by username
+GET http://localhost:6435/user-api/search?q=P
+Content-Type: application/json
+
+###
+
+### 34. Search by first name
+GET http://localhost:6435/user-api/search?q=john
+Content-Type: application/json
+
+###
+
+### 35. Search with empty query (should return 400)
+GET http://localhost:6435/user-api/search?q=
+Content-Type: application/json
+
+###
+
+### 36. Search with no query param (should return 400)
+GET http://localhost:6435/user-api/search
+Content-Type: application/json
+
+###
+
+### 37. Search with special characters (should be safe — regex is escaped)
+GET http://localhost:6435/user-api/search?q=__sumanmondal
+Content-Type: application/json
+
+###
+
+
+### ── GET USER'S POSTS ─────────────────────
+
+
+### 38. Get posts of a user by username
+GET http://localhost:6435/user-api/posts/testuser
+Content-Type: application/json
+
+###
+
+### 39. Get posts of non-existent user (should return 404)
+GET http://localhost:6435/user-api/posts/ghostuser999
+Content-Type: application/json
+
+###
+
+### 40. Get posts of blocked/deactivated user (should return 403)
+GET http://localhost:6435/user-api/posts/blockedusername
+Content-Type: application/json
+
+###
+
+
+### ── SUGGESTIONS ─────────────────────────
+
+
+### 41. Get suggested users to follow (people you don't follow yet)
+GET http://localhost:6435/user-api/suggestions
+Content-Type: application/json
+
+###
+
+### 42. Get suggestions when you follow everyone
+### (Should return empty or small list)
+GET http://localhost:6435/user-api/suggestions
+Content-Type: application/json
+
+###

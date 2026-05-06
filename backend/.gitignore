@@ -39,3 +39,9 @@ build
 *.sw?
 
 .env
+
+req-admin.http
+req-auth.http
+req-post.http
+req-user.http
+req-notification.http

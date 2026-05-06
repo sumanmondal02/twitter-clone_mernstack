@@ -8,7 +8,7 @@ import {postRoute} from "./APIs/postRoute.js";
 import {adminRoute} from "./APIs/adminRoute.js";
 import {commonRoute} from "./APIs/commonRoute.js";
 import { notificationRoute } from "./APIs/notificationRoute.js"
-import {errorHandler} from './middleware/verifytoken.js'
+import {errorHandler} from './middlewares/verifyToken.js'
 
 config();
 

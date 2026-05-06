@@ -64,3 +64,13 @@ notificationRoute.delete('/:id', verifyToken, async (req, res, next) => {
         next(err);
     }
 });
+
+// CLEAR ALL NOTIFICATIONS
+notificationRoute.delete('/clear', verifyToken, async (req, res, next) => {
+    try {
+        await NotificationModel.deleteMany({ toUserId: req.user.id });
+        return res.status(200).json({ message: "All notifications cleared" });
+    } catch (err) {
+        next(err);
+    }
+});

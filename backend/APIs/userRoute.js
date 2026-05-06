@@ -211,6 +211,11 @@ userRoute.post("/follow/:id", verifyToken, async (req, res, next) => {
                 $inc: { followerCount: 1 },
             }),
         ]);
+        await NotificationModel.deleteOne({
+            toUserId: targetUserId,
+            fromUserId: currentUserId,
+            type: "follow"
+        });
 
         await NotificationModel.create({
             toUserId: targetUserId,
@@ -273,6 +278,12 @@ userRoute.delete("/unfollow/:id", verifyToken, async (req, res, next) => {
                 $inc: { followerCount: -1 },
             }),
         ]);
+
+        await NotificationModel.deleteOne({
+            toUserId: targetUserId,
+            fromUserId: currentUserId,
+            type: "follow"
+        });
 
         return res.status(200).json({ message: "Unfollowed successfully" });
     } catch (err) {

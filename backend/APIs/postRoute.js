@@ -220,8 +220,15 @@ postRoute.patch('/likepost/:id', verifyToken, async (req, res, next) => {
             $inc: { likeCount: 1 }
         });
 
-        //Notification for post owner if someone else liked their post
         if (postObj.userId.toString() !== userId.toString()) {
+            // Delete any old like notification first, then create fresh
+            await NotificationModel.deleteOne({
+                toUserId: postObj.userId,
+                fromUserId: userId,
+                type: "like",
+                postId: postId
+            });
+
             await NotificationModel.create({
                 toUserId: postObj.userId,
                 fromUserId: userId,
@@ -267,7 +274,15 @@ postRoute.patch('/unlikepost/:id', verifyToken, async (req, res, next) => {
             $pull: { likes: { userId } },
             $inc: { likeCount: -1 }
         });
- 
+
+        // When unliked, delete the like notification entirely
+        await NotificationModel.deleteOne({
+            toUserId: postObj.userId,
+            fromUserId: userId,
+            type: "like",
+            postId: postId
+        });
+
         return res.status(200).json({ message: "Unliked the post" });
  
     } catch (err) {
@@ -358,7 +373,14 @@ postRoute.delete('/delcomment/:postId/:commentId', verifyToken, async (req, res,
             $pull: { comments: { _id: commentId } },
             $inc: { commentCount: -1 }
         });
- 
+
+        // When comment is deleted, remove its notification too
+        await NotificationModel.deleteOne({
+            fromUserId: userId,
+            postId: postId,
+            type: "comment"
+        });
+
         return res.status(200).json({ message: "Comment deleted successfully" });
  
     } catch (err) {
