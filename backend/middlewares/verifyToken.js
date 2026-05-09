@@ -59,10 +59,8 @@ export const errorHandler = (err, req, res, next) => {
     }
     // validation error
     if (err.name === "ValidationError") {
-        return res.status(400).json({ 
-            message: "Validation error occurred", 
-            error: err.message 
-        });
+      const firstError = Object.values(err.errors)[0].message;
+        return res.status(400).json({ message: firstError});
     }
     // cast error
     if (err.name === "CastError") {

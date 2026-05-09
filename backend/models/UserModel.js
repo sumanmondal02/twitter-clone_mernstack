@@ -43,6 +43,10 @@ const userSchema = new Schema({
         required: [true, "Password is required"],
         minLength: [5, "Password must be at least 5 characters long"]
     },
+    passwordResetVersion: {
+        type: Number,
+        default: 0
+    },
     gender:{
         type: String,
         enum: ["male", "female"]
@@ -50,14 +54,16 @@ const userSchema = new Schema({
     dob:{
         type: Date,
         required: [true, "Date of birth is required"],
-        // max: [new Date(), "Date of birth cannot be in the future"],
         validate: {
-            validator: function (value) {
-            if (value > new Date()) return false;
-            const cutoff = new Date();
-            cutoff.setFullYear(cutoff.getFullYear() - 16);
-            return value <= cutoff;
-        }, message: "User must be at least 16 years old and DOB cannot be in the future",
+            validator: function(value) {
+                if (value > new Date()) {
+                    throw new Error("Date of birth cannot be in the future");
+                }
+                const cutoff = new Date();
+                cutoff.setFullYear(cutoff.getFullYear() - 16);
+                return value <= cutoff;
+            },
+            message:"User must be at least 16 years old"
         }
     },
     bio:{

@@ -17,7 +17,6 @@ export const userRoute = exp.Router();
 userRoute.get("/profile/:username", verifyToken, async (req, res, next) => {
     try {
         const user = await UserModel.findOne({username: req.params.username});
-
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
@@ -27,19 +26,14 @@ userRoute.get("/profile/:username", verifyToken, async (req, res, next) => {
         else if (user.isBlocked) {
             return res.status(403).json({ message: "This account is blocked" });
         }
-
         const isOwnProfile = user._id.toString() === req.user.id.toString();
-
         // Check if the logged-in user follows this profile
         // const currentUser = await UserModel.findById(req.user.id).select("following");
         const isFollowing = req.user.following?.some((f) => f.userId.toString() === user._id.toString());
-
         // Convert to plain object so we can delete fields
         const payload = user.toObject();
-
         // Always strip password
         delete payload.password;
-
         // Strip extra sensitive fields for other people's profiles
         if (!isOwnProfile) {
             delete payload.email;
@@ -47,7 +41,6 @@ userRoute.get("/profile/:username", verifyToken, async (req, res, next) => {
             delete payload.isBlocked;
             delete payload.isDeactivated;
         }
-
         return res.status(200).json({message: "Profile fetched successfully", 
             payload,
             isOwnProfile, // frontend: show Edit Profile vs Follow button
@@ -70,9 +63,7 @@ userRoute.put("/updateProfile", verifyToken, upload.single('profileImageUrl'), a
         if (firstName) updateFields.firstName = firstName;
         if (lastName !== undefined) updateFields.lastName = lastName;
         if (gender) updateFields.gender = gender;
-
         // let profileImageUrl = req.body.profileImageUrl || undefined; // fallback if no new file
-
         if (req.file) {
             cloudinaryResult = await uploadToCloudinary(req.file.buffer);
             updateFields.profileImageUrl = cloudinaryResult.secure_url;
@@ -83,13 +74,10 @@ userRoute.put("/updateProfile", verifyToken, upload.single('profileImageUrl'), a
                 return res.status(409).json({ message: "Username already taken" });
         }
         }
-
         const updated = await UserModel.findByIdAndUpdate(req.user.id, { $set: updateFields }, { new: true, runValidators: true }).select("-password -followers -following");
-
         if (!updated) {
             return res.status(404).json({ message: "User not found" });
         }
-
         return res.status(200).json({
             message: "Profile updated successfully",
             payload: updated,
@@ -97,8 +85,7 @@ userRoute.put("/updateProfile", verifyToken, upload.single('profileImageUrl'), a
     } catch (err) {
         if (cloudinaryResult?.public_id) {
             await cloudinary.uploader.destroy(cloudinaryResult.public_id);
-        }
-        next(err);
+        } next(err);
     }
 });
 
@@ -106,27 +93,21 @@ userRoute.put("/updateProfile", verifyToken, upload.single('profileImageUrl'), a
 userRoute.delete("/profileImage", verifyToken, async (req, res, next) => {
     try {
         const user = await UserModel.findById(req.user.id);
-
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
         if (!user.profileImageUrl) {
             return res.status(400).json({ message: "No profile image to delete" });
         }
-
         const urlParts = user.profileImageUrl.split('/');
         const filename = urlParts[urlParts.length - 1].split('.')[0];
         const folder = urlParts[urlParts.length - 2];
         const publicId = `${folder}/${filename}`;
-
         // Delete from Cloudinary
         await cloudinary.uploader.destroy(publicId);
-
         // Set profileImageUrl to null in DB
         await UserModel.findByIdAndUpdate(req.user.id, { profileImageUrl: null });
-
         return res.status(200).json({ message: "Profile image deleted successfully" });
-
     } catch (err) {
         next(err);
     }
@@ -137,22 +118,17 @@ userRoute.put("/deactivate", verifyToken, async (req, res, next) => {
     try {
         const { password } = req.body;
         if (!password) return res.status(400).json({ message: "Password required to deactivate" });
-
         const user = await UserModel.findById(req.user.id);
-
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
-
         const isMatch = await compare(password, user.password);
-
         if (!isMatch) return res.status(401).json({ message: "Invalid password" });
         await UserModel.findByIdAndUpdate(req.user.id, { isDeactivated: true });
-
         res.clearCookie("token", {
             httpOnly: true,
             secure: false, // set to true in production with HTTPS
-            sameSite: "none"
+            sameSite: "lax"
         });
         return res.status(200).json({ message: "Account deactivated successfully" });
     } catch (err) {
@@ -165,11 +141,9 @@ userRoute.post("/follow/:id", verifyToken, async (req, res, next) => {
     try {
         const currentUserId = req.user.id;
         const targetUserId = req.params.id;
-
         if (currentUserId === targetUserId) {
             return res.status(400).json({ message: "You cannot follow yourself" });
         }
-
         // Fetch both users in parallel — faster than two sequential awaits
         const [currentUser, targetUser] = await Promise.all([
             UserModel.findById(currentUserId),
@@ -187,18 +161,15 @@ userRoute.post("/follow/:id", verifyToken, async (req, res, next) => {
                 .status(403)
                 .json({ message: "This account is unavailable" });
         }
-
         // Prevent duplicate follows
         const alreadyFollowing = currentUser.following.some(
             (f) => f.userId.toString() === targetUserId
         );
-
         if (alreadyFollowing) {
             return res
                 .status(400)
                 .json({ message: "Already following this user" });
         }
-
         // $push + $inc in the same operation — keeps array and count in sync
         // Promise.all — both DB updates run in parallel, not sequentially
         await Promise.all([
@@ -216,14 +187,12 @@ userRoute.post("/follow/:id", verifyToken, async (req, res, next) => {
             fromUserId: currentUserId,
             type: "follow"
         });
-
         await NotificationModel.create({
             toUserId: targetUserId,
             fromUserId: currentUserId,
             type: "follow",
             postId: null
         });
-
         return res.status(200).json({ message: "Followed successfully" });
     } catch (err) {
         next(err);
@@ -235,38 +204,31 @@ userRoute.delete("/unfollow/:id", verifyToken, async (req, res, next) => {
     try {
         const currentUserId = req.user.id;
         const targetUserId = req.params.id;
-
         if (currentUserId === targetUserId) {
             return res
                 .status(400)
                 .json({ message: "You cannot unfollow yourself" });
         }
-
         // Fetch both users in parallel
         const [currentUser, targetUser] = await Promise.all([
             UserModel.findById(currentUserId),
             UserModel.findById(targetUserId),
         ]);
-
         if (!currentUser) {
             return res.status(404).json({ message: "Current user not found" });
         }
-
         if (!targetUser) {
             return res.status(404).json({ message: "User not found" });
         }
-
         // Must verify following before pulling — prevents followerCount going negative
         const isFollowing = currentUser.following.some(
             (f) => f.userId.toString() === targetUserId
         );
-
         if (!isFollowing) {
             return res
                 .status(400)
                 .json({ message: "You are not following this user" });
         }
-
         // $pull + $inc in the same operation — keeps array and count in sync
         await Promise.all([
             UserModel.findByIdAndUpdate(currentUserId, {
@@ -278,13 +240,11 @@ userRoute.delete("/unfollow/:id", verifyToken, async (req, res, next) => {
                 $inc: { followerCount: -1 },
             }),
         ]);
-
         await NotificationModel.deleteOne({
             toUserId: targetUserId,
             fromUserId: currentUserId,
             type: "follow"
         });
-
         return res.status(200).json({ message: "Unfollowed successfully" });
     } catch (err) {
         next(err);
@@ -299,12 +259,10 @@ userRoute.delete("/removeFollower/:id", verifyToken, async (req,res)=>{
         if (currentUserId === followerId) {
             return res.status(400).json({ message: "Invalid operation" });
         }
- 
         const currentUser = await UserModel.findById(currentUserId);
         if (!currentUser) {
             return res.status(404).json({ message: "User not found" });
         }
- 
         // Verify the person is actually your follower before removing
         const isFollower = currentUser.followers.some(
             (f) => f.userId.toString() === followerId
@@ -312,7 +270,6 @@ userRoute.delete("/removeFollower/:id", verifyToken, async (req,res)=>{
         if (!isFollower) {
             return res.status(400).json({ message: "This user is not your follower" });
         }
-
         await Promise.all([
             UserModel.findByIdAndUpdate(currentUserId,{
             $pull: { followers: { userId: followerId } },
@@ -323,7 +280,6 @@ userRoute.delete("/removeFollower/:id", verifyToken, async (req,res)=>{
             $inc: { followingCount: -1 }
             })
         ]);
-
         res.json({ message: "Follower removed" });
     }catch(err){
         next(err);
@@ -338,11 +294,9 @@ userRoute.get("/followerslist", verifyToken, async (req, res, next) => {
             "followers.userId",
             "username firstName lastName profileImageUrl followerCount"
         );
-
         if (!userObj) {
             return res.status(404).json({ message: "User not found" });
         }
-
         return res.status(200).json({
             message: "Followers list",
             payload: userObj.followers,
@@ -360,11 +314,9 @@ userRoute.get("/followinglist", verifyToken, async (req, res, next) => {
             "following.userId",
             "username firstName lastName profileImageUrl followerCount"
         );
-
         if (!userObj) {
             return res.status(404).json({ message: "User not found" });
         }
-
         return res.status(200).json({
             message: "Following list",
             payload: userObj.following,
@@ -380,7 +332,6 @@ userRoute.get("/followinglist", verifyToken, async (req, res, next) => {
 userRoute.get("/search", verifyToken, async (req, res, next) => {
     try {
         const { q } = req.query;
-
         if (!q || q.trim() === "") {
             return res
                 .status(400)
@@ -412,14 +363,12 @@ userRoute.get("/posts/:username", verifyToken, async (req, res, next) => {
     try {
         // Find the user by username first
         const user = await UserModel.findOne({ username: req.params.username });
-
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
         if (user.isBlocked || user.isDeactivated) {
             return res.status(403).json({ message: "This account is unavailable" });
         }
-
         // Fetch all non-deleted posts by that user, newest first
         const posts = await PostModel.find({ userId: user._id, isDeleted: false })
             .sort({ createdAt: -1 })
@@ -475,7 +424,7 @@ userRoute.get("/suggestions", verifyToken, async (req, res, next) => {
         })
         .select("username firstName lastName profileImageUrl followerCount bio")
         .limit(10);
-
+        
         return res.status(200).json({ message: "Suggestions", payload: suggestions });
     } catch (err) { next(err); }
 });

@@ -9,7 +9,6 @@ export const adminRoute = exp.Router()
 adminRoute.get('/users', verifyToken, verifyAdmin, async (req, res, next) => {
     try {
         const users = await UserModel.find().select("-password -followers -following")
-
         res.status(200).json({ message: "All users", payload: users })
     } catch (err) {
         next(err)
@@ -37,11 +36,8 @@ adminRoute.patch('/users/:id/block', verifyToken, verifyAdmin, async (req, res, 
         if (targetUser.isBlocked) {
             return res.status(400).json({ message: "User is already blocked" });
         }
-        const updatedUser = await UserModel.findByIdAndUpdate(
-            req.params.id,
-            { isBlocked: true },
-            { new: true }
-        ).select("-password -followers -following");
+        const updatedUser = await UserModel.findByIdAndUpdate(req.params.id,{ isBlocked: true },{ new: true })
+            .select("-password -followers -following");
         res.status(200).json({ message: "User blocked successfully", payload: updatedUser });
     } catch (err) {
         next(err);
@@ -52,17 +48,14 @@ adminRoute.patch('/users/:id/block', verifyToken, verifyAdmin, async (req, res, 
 adminRoute.patch('/users/:id/unblock', verifyToken, verifyAdmin, async (req, res, next) => {
     try {
         const user = await UserModel.findById(req.params.id)
-
         if (!user) {
-        return res.status(404).json({ message: "User not found" })
+            return res.status(404).json({ message: "User not found" })
         }
         if (!user.isBlocked) {
             return res.status(400).json({ message: "User already unblocked" });
         }
-
         user.isBlocked = false
         const updatedUser = await user.save()
-
         res.status(200).json({ message: "User unblocked successfully", payload: updatedUser })
     } catch (err) {
         next(err)
