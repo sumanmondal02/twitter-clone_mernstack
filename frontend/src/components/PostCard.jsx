@@ -570,8 +570,11 @@ function PostCard({ post }) {
 
                 <img
                   src={
-                    currentUser?.profileImageUrl
+                    currentUser?.profileImageUrl || "https://upload.wikimedia.org/wikipedia/commons/0/03/Twitter_default_profile_400x400.png"
                   }
+                  onError={(e) => {
+                    e.target.src = "https://upload.wikimedia.org/wikipedia/commons/0/03/Twitter_default_profile_400x400.png";
+                  }}
                   alt="profile"
                   className="
                     w-9 h-9

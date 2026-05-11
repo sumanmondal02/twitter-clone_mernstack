@@ -1,12 +1,17 @@
 import Cropper from "react-easy-crop";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
-function ImageCropModal({ image }) {
+function ImageCropModal({ image, setCroppedAreaPixels, }) {
   const [crop, setCrop] = useState({
     x: 0,
     y: 0,
   });
   const [zoom, setZoom] = useState(1);
+  const onCropComplete = useCallback((_, croppedAreaPixels) => {
+    setCroppedAreaPixels(
+      croppedAreaPixels
+    );
+  }, [setCroppedAreaPixels]);
 
   return (
     <div className="space-y-5">
@@ -23,6 +28,7 @@ function ImageCropModal({ image }) {
           showGrid={false}
           onCropChange={setCrop}
           onZoomChange={setZoom}
+          onCropComplete={onCropComplete}
         />
       </div>
       <div className="space-y-4">

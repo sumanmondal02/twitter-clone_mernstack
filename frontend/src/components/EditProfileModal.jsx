@@ -15,6 +15,9 @@ import { useNavigate } from "react-router-dom";
 
 import CustomDatePicker from "./CustomDatePicker";
 
+import ImageCropModal from "./ImageCropModal";
+import getCroppedImg from "../lib/cropImage";
+
 function EditProfileModal({
   profileUser,
   closeModal,
@@ -36,8 +39,17 @@ const [showNewPassword,
 setShowNewPassword] =
 useState(false);
 
-  const [preview, setPreview] =
-    useState("");
+  const [preview, setPreview] = useState("");
+
+  const [
+  croppedAreaPixels,
+  setCroppedAreaPixels
+] = useState(null);
+
+const [
+  showCropper,
+  setShowCropper
+] = useState(false);
 
   const [profileImageFile, setProfileImageFile] =
     useState(null);
@@ -88,7 +100,9 @@ useState(false);
         profileUser.gender || "",
 
       dob:
-        profileUser.dob || "",
+        profileUser.dob ? new Date(profileUser.dob)
+        .toISOString()
+        .split("T")[0] : "",
 
       email:
         profileUser.email || "",
@@ -110,6 +124,7 @@ useState(false);
       URL.createObjectURL(file);
 
     setPreview(imageUrl);
+    setShowCropper(true);
 
     setEditData({
       ...editData,
@@ -123,6 +138,8 @@ useState(false);
     setPreview("");
 
     setProfileImageFile(null);
+    setCroppedAreaPixels(null);
+    setShowCropper(false);
 
     setEditData({
       ...editData,
@@ -136,6 +153,31 @@ useState(false);
     try {
 
       setIsSaving(true);
+
+      let finalImageFile =
+  profileImageFile;
+
+if (
+  preview &&
+  croppedAreaPixels &&
+  profileImageFile
+) {
+
+  const croppedBlob =
+    await getCroppedImg(
+      preview,
+      croppedAreaPixels
+    );
+
+  finalImageFile = new File(
+    [croppedBlob],
+    "cropped.jpg",
+    {
+      type: "image/jpeg"
+    }
+  );
+
+}
 
       const formData = new FormData();
 
@@ -174,11 +216,11 @@ useState(false);
         editData.removeProfileImage
       );
 
-      if (profileImageFile) {
+      if (finalImageFile) {
 
         formData.append(
           "profileImageUrl",
-          profileImageFile
+          finalImageFile
         );
 
       }
@@ -204,6 +246,7 @@ useState(false);
         res.data.message ||
         "Profile updated successfully"
       );
+      setShowCropper(false);
 
       closeModal();
 
@@ -609,6 +652,19 @@ useState(false);
                     </div>
 
                   </div>
+
+                  {
+  showCropper && preview && (
+
+    <ImageCropModal
+      image={preview}
+      setCroppedAreaPixels={
+        setCroppedAreaPixels
+      }
+    />
+
+  )
+}
 
                   {/* FIRST + LAST */}
 

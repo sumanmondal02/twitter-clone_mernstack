@@ -109,6 +109,10 @@ export const errorHandler = (err, req, res, next) => {
     if (err.code === "LIMIT_FILE_SIZE") {
         return res.status(400).json({ message: "File size cannot exceed 25MB" });
     }
+    // Multer unexpected field
+    if (err.code === "LIMIT_UNEXPECTED_FILE") {
+        return res.status(400).json({ message: `Unexpected file field: ${err.field}` });
+    }
     // send server error
     return res.status(500).json({ 
         message: "Server side error occurred", 

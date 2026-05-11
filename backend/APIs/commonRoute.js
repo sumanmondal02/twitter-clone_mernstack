@@ -49,6 +49,7 @@ commonRoute.post('/register', upload.single('profileImageUrl'), async (req, res,
         else if (req.file) {
             cloudinaryResult = await uploadToCloudinary(req.file.buffer);
             userObj.profileImageUrl = cloudinaryResult.secure_url;
+            userObj.profileImagePublicId = cloudinaryResult.public_id;
         } else {
             userObj.profileImageUrl = null;
         }
@@ -269,7 +270,7 @@ commonRoute.post("/reactivate", async (req, res, next) => {
         const isMatch = await compare(password, user.password)
         if (!isMatch) return res.status(401).json({ message: "Invalid credentials" })
         await UserModel.findByIdAndUpdate(user._id, { isDeactivated: false })
-        res.status(200).json({ message: "Account reactivated successfully. Please login again." })
+        res.status(200).json({ message: "Account reactivated successfully." })
     } catch (err) {
         console.error("Error in account reactivation: ", err);
         next(err);

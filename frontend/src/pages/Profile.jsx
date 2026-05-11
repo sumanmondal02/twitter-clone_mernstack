@@ -13,6 +13,7 @@ function Profile() {
   const {
   profile,
   isLoading,
+  profileNotFound,
   getProfile,
   isOwnProfile,
   isFollowing,
@@ -20,7 +21,8 @@ function Profile() {
   unfollowUser,
 } = useProfile();
 
-  const profileUser = username === currentUser?.username ? currentUser : profile;
+  // const profileUser = username === currentUser?.username ? currentUser : profile;
+  const profileUser = profile;
 
   const posts = [];
 
@@ -66,33 +68,79 @@ function Profile() {
         : "",
     };
 
-    const hasChanges = JSON.stringify(editData) !== JSON.stringify(originalData);
+  const hasChanges = JSON.stringify(editData) !== JSON.stringify(originalData);
 
   useEffect(() => {
     if (username) getProfile(username);
   }, [username]);
 
   useEffect(() => {
-    if (!profileUser) return;
 
-    setEditData({
-      firstName:
-        profileUser?.firstName || "",
+  if (!profileUser) return;
 
-      lastName:
-        profileUser?.lastName || "",
+  setEditData({
+    firstName:
+      profileUser.firstName || "",
 
-      username:
-        profileUser?.username || "",
+    lastName:
+      profileUser.lastName || "",
 
-      gender:
-        profileUser?.gender || "",
+    username:
+      profileUser.username || "",
 
-      dob: profileUser?.dob
-        ? profileUser.dob.split("T")[0]
+    gender:
+      profileUser.gender || "",
+
+    bio:
+      profileUser.bio || "",
+
+    dob:
+      profileUser.dob
+        ? new Date(profileUser.dob)
+            .toISOString()
+            .split("T")[0]
         : "",
-    });
-  }, [profileUser]);
+  });
+
+}, [profileUser]);
+
+  if (profileNotFound) {
+    return (
+      <AppLayout>
+        <div
+          className="
+            min-h-screen
+            flex
+            flex-col
+            items-center
+            justify-center
+            text-center
+            px-6
+          "
+        >
+          <h1
+            className="
+              text-white
+              text-[32px]
+              font-bold
+              mb-3
+            "
+          >
+            This account doesn’t exist
+          </h1>
+          <p
+            className="
+              text-[#71767b]
+              text-[16px]
+            "
+          >
+            Try searching for another.
+          </p>
+
+        </div>
+      </AppLayout>
+    );
+  }
 
   if (isLoading || !profileUser) {
     return (
@@ -204,6 +252,20 @@ function Profile() {
               <div className="text-[#71767b] text-[16px]">
                 @{profileUser?.username}
               </div>
+              { profileUser?.bio && (
+                <div
+                  className="
+                    mt-3
+                    text-white
+                    text-[15px]
+                    whitespace-pre-wrap
+                    break-words
+                    leading-relaxed
+                  "
+                >
+                  {profileUser.bio}
+                </div>
+              ) }
 
             </div>
 

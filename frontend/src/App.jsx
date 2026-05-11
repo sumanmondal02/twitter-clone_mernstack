@@ -10,6 +10,8 @@ import ProtectedRoute from "./pages/ProtectedRoute";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Profile from "./pages/Profile";
+import Messages from "./pages/Messages";
+import Bookmarks from "./pages/Bookmarks";
 
 function App() {
   // check token when app opens
@@ -54,7 +56,23 @@ function App() {
           <Profile />
         </ProtectedRoute>
       )
-    }
+    },
+    {
+      path: "/messages",
+      element: (
+        <ProtectedRoute>
+          <Messages />
+        </ProtectedRoute>
+      )
+    },
+    {
+      path: "/bookmarks",
+      element: (
+        <ProtectedRoute>
+          <Bookmarks />
+        </ProtectedRoute>
+      )
+    },
   ]);
 
   return (

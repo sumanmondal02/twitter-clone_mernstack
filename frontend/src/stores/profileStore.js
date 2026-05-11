@@ -10,10 +10,11 @@ export const useProfile = create((set) => ({
   isOwnProfile: false,
   isFollowing: false,
   isLoading: false,
+  profileNotFound: false,
 
   async getProfile(username) {
     try {
-      set({ isLoading: true });
+      set({ isLoading: true, profileNotFound: false });
 
       const res = await axios.get(
         `${API}/user-api/profile/${username}`
@@ -30,6 +31,7 @@ export const useProfile = create((set) => ({
 
       set({
         profile: null,
+        profileNotFound: true,
       });
     } finally {
       set({ isLoading: false });

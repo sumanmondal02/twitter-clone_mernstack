@@ -36,7 +36,7 @@ const postSchema = new Schema({
     description: {
         type: String,
         maxLength: [360, "Description cannot be more than 360 characters long"],
-        required: [true, "Description is required"],
+        default: "",
         trim: true
     },
     isDeleted:{

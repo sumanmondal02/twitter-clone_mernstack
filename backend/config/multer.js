@@ -5,11 +5,17 @@ export const upload = multer({
   storage: multer.memoryStorage(),
   //to avoid RAM overflow
   limits: {
-    fileSize: 25 * 1024 * 1024, // 25MB
+    fileSize: 15 * 1024 * 1024, // 15MB
   },
   //for security validation
   fileFilter: (req, file, cb) => {
-    if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
+    const allowedTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp"
+    ];
+    if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
       const err = new Error("Only JPG and PNG allowed");

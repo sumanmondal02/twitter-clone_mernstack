@@ -5,6 +5,7 @@ import * as s from "../styles/common";
 import { useAuth } from "../stores/authStore";
 import CustomDatePicker from "../components/CustomDatePicker";
 import ImageCropModal from "../components/ImageCropModal";
+import getCroppedImg from "../lib/cropImage";
 import toast from "react-hot-toast";
 
 function Register() {
@@ -28,6 +29,8 @@ function Register() {
     profileImageUrl: null,
   });
 
+  const [croppedAreaPixels,setCroppedAreaPixels] = useState(null);
+
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     clearError();
@@ -43,18 +46,54 @@ function Register() {
   const removeImage = () => {
     setFormData({ ...formData, profileImageUrl: null });
     setPreview(null);
+    setCroppedAreaPixels(null);
   };
 
   const handleSubmit = async (e) => {
-      e.preventDefault();
-      const data = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        if (value !== null && value !== "") {
-          data.append(key, value);
+    e.preventDefault();
+    let croppedFile = formData.profileImageUrl;
+    if (preview && croppedAreaPixels) {
+      const croppedBlob =
+        await getCroppedImg(
+          preview,
+          croppedAreaPixels
+        );
+      croppedFile = new File(
+        [croppedBlob],
+        "cropped.jpg",
+        {
+          type: "image/jpeg",
         }
-      });
-      const res = await register(data);
-      if (res.success) {
+      );
+    }
+    const data = new FormData();
+    Object.entries(formData).forEach(
+  ([key, value]) => {
+
+    if (
+      key !== "profileImageUrl" &&
+      value !== null &&
+      value !== ""
+    ) {
+
+      data.append(key, value);
+
+    }
+
+  }
+);
+
+if (croppedFile) {
+
+  data.append(
+    "profileImageUrl",
+    croppedFile
+  );
+
+}
+    
+    const res = await register(data);
+    if (res.success) {
         toast.success("Account created successfully!\nRedirecting to login page in 3 seconds...");
         clearError();
         setTimeout(() => { window.location.href = "/login"; }, 1870);
@@ -214,7 +253,9 @@ function Register() {
               </div>
               {
                 preview && (
-                  <ImageCropModal image={preview} />
+                  <ImageCropModal image={preview} setCroppedAreaPixels={
+                    setCroppedAreaPixels
+                  } />
                 )}
             </div>
             {error && (

@@ -58,17 +58,31 @@ userRoute.put("/updateProfile", verifyToken, upload.single('profileImageUrl'), a
     try {
         const { username, bio, firstName, lastName, gender, dob, removeProfileImage } = req.body;
         const updateFields = {};
+        const user = await UserModel.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
         if (username) updateFields.username = username;
         if (bio !== undefined) updateFields.bio = bio;
         if (firstName) updateFields.firstName = firstName;
         if (lastName !== undefined) updateFields.lastName = lastName;
         if (gender) updateFields.gender = gender;
         if (dob) updateFields.dob = dob;
-        if (removeProfileImage === "true") { updateFields.profileImageUrl = null; }
+        if ((req.file || removeProfileImage === "true" ) && user.profileImagePublicId) {
+            await cloudinary.uploader.destroy(
+                user.profileImagePublicId
+            );
+            updateFields.profileImagePublicId = null;
+        }
+        if (removeProfileImage === "true") { 
+            updateFields.profileImageUrl = null; 
+            updateFields.profileImagePublicId = null;
+        }
         // let profileImageUrl = req.body.profileImageUrl || undefined; // fallback if no new file
         if (req.file) {
             cloudinaryResult = await uploadToCloudinary(req.file.buffer);
             updateFields.profileImageUrl = cloudinaryResult.secure_url;
+            updateFields.profileImagePublicId = cloudinaryResult.public_id;
         }
         if (username) {
             const exists = await UserModel.findOne({ username });
@@ -105,10 +119,13 @@ userRoute.delete("/profileImage", verifyToken, async (req, res, next) => {
         const filename = urlParts[urlParts.length - 1].split('.')[0];
         const folder = urlParts[urlParts.length - 2];
         const publicId = `${folder}/${filename}`;
-        // Delete from Cloudinary
-        await cloudinary.uploader.destroy(publicId);
+        if(user.profileImagePublicId){
+            await cloudinary.uploader.destroy(user.profileImagePublicId);
+        } else {
+            await cloudinary.uploader.destroy(publicId);
+        }
         // Set profileImageUrl to null in DB
-        await UserModel.findByIdAndUpdate(req.user.id, { profileImageUrl: null });
+        await UserModel.findByIdAndUpdate(req.user.id, { profileImageUrl: null, profileImagePublicId: null });
         return res.status(200).json({ message: "Profile image deleted successfully" });
     } catch (err) {
         next(err);
