@@ -1,4 +1,5 @@
 import AppLayout from "../components/AppLayout";
+import FeedList from "../components/FeedList";
 import FeedTabs from "../components/FeedTabs";
 import PostComposer from "../components/PostComposer";
 
@@ -8,6 +9,8 @@ function Home() {
       <FeedTabs />
 
       <PostComposer />
+
+      <FeedList />
     </AppLayout>
   );
 }

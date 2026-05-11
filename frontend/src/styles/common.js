@@ -70,25 +70,25 @@ export const authSignUpLinkA    = "text-[#1d9bf0] hover:underline cursor-pointer
 
 // ─── PAGE BACKGROUND & WRAPPER ────────────────────────────────────────────────
 export const pageRoot           = "bg-black min-h-screen text-[#e7e9ea] font-[-apple-system,BlinkMacSystemFont,sans-serif]";
-export const pageWrapper        = "max-w-[1500px] mx-auto flex min-h-screen";
+export const pageWrapper        = "max-w-[1500px] mx-auto flex min-h-screen overflow-x-hidden";
 
 // ─── THREE-COLUMN LAYOUT ─────────────────────────────────────────────────────
 // Left sidebar — fixed, 275px (88px on medium, icons only)
-export const leftSidebar        = "fixed top-0 left-0 h-screen w-[64px] xl:w-[280px] border-r border-[#2f3336] flex justify-center xl:justify-end";
-export const leftSidebarInner   = "h-screen flex flex-col items-center xl:items-start px-1 xl:px-7 py-6 gap-1";
+export const leftSidebar        = "fixed top-0 left-0 h-screen w-[62px] xl:w-[270px] border-r border-[#2f3336] flex justify-center xl:justify-end";
+export const leftSidebarInner   = "h-screen flex flex-col items-center xl:items-start px-4 py-5 gap-2";
 // Main feed column — ml offset matches sidebar, mr offset matches right panel
 // export const feedColumn         = "flex-1 min-h-screen border-x border-[#2f3336] ml-[82px] xl:ml-[260px] lg:mr-[300px]";
-export const feedColumn         = "flex-1 min-h-screen border-x border-[#2f3336] ml-[64px] xl:ml-[280px] lg:mr-[445px] mr-0 max-w-none"; // add horizontal padding to feed
+export const feedColumn         = "flex-1 min-h-screen border-x border-[#2f3336] ml-[62px] xl:ml-[270px] lg:mr-[425px] mr-0 w-full overflow-x-hidden"; // add horizontal padding to feed
 // Right panel — fixed, 350px, hidden below xl
-export const rightPanel         = "hidden lg:block fixed top-0 right-1 w-[440px] h-screen overflow-y-auto px-4 py-4 xl:px-6";
-export const logoutPopup        = "absolute bottom-24 left-3 bg-black border border-[#2f3336] rounded-2xl shadow-2xl overflow-hidden w-[220px]";
-export const logoutBtn          = "w-full text-left px-4 py-4 hover:bg-[#16181c] text-[#e7e9ea] font-bold transition-colors";
+export const rightPanel         = "hidden lg:block fixed top-0 right-3 w-[410px] h-screen overflow-y-auto px-4 py-4 xl:px-6";
+export const logoutPopup        = "absolute bottom-20 left-1 bg-black border border-[#2f3336] rounded-3xl shadow-2xl overflow-hidden w-[220px] transition-colors";
+export const logoutBtn          = "w-full text-left px-4 py-4 hover:bg-[#16181c] text-[#e7e9ea] font-bold transition-colors hover:text-red-500 cursor-pointer";
 
 // ─── SIDEBAR NAV (Image 4, 14) ────────────────────────────────────────────────
 // X Logo at top — just the X icon, 50px hit target
 // export const sidebarXLogo       = "w-[56px] h-[56px] rounded-full flex items-center justify-center hover:bg-[#181818] transition cursor-pointer mb-3 self-center xl:self-start";
-export const sidebarXLogo       = "w-full h-[72px] flex items-center justify-center hover:bg-[#181818] transition cursor-pointer mt-2 mb-5 rounded-full";
-export const sidebarNav         = "flex flex-col gap-1 mt-8 xl:mt-4 flex-1 w-full";
+export const sidebarXLogo       = "w-full h-[72px] flex items-center justify-center hover:bg-[#181818] transition cursor-pointer mt-3 mb-5 rounded-full";
+export const sidebarNav         = "flex flex-col gap-1 mt-5 xl:mt-0.5 flex-1 w-full";
 
 // Nav item — icon always shows, label only on xl screens
 // X uses no emoji — icons are SVG stroke icons (react-icons/ri or similar)
@@ -101,11 +101,11 @@ export const navLabelActive     = "hidden xl:block text-[21px] text-[#e7e9ea] fo
 export const navBadge           = "absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-[#1d9bf0] text-white text-[11px] font-bold rounded-full flex items-center justify-center px-1";
 
 // Post button — wide on xl, circle icon only on small
-export const postBtnWide        = "hidden xl:flex items-center justify-center w-[90%] h-[50px] rounded-full bg-[#1d9bf0] hover:bg-[#1a8cd8] transition font-bold text-[17px] text-white mt-4";
-export const postBtnCircle      = "xl:hidden w-[45px] h-[45px] rounded-full bg-[#1d9bf0] hover:bg-[#1a8cd8] flex items-center justify-center text-white mt-5";
+export const postBtnWide        = "hidden xl:flex items-center justify-center w-[95%] h-[54px] rounded-full bg-[#1d9bf0] hover:bg-[#1a8cd8] transition font-bold text-[17px] text-white mt-2.5";
+export const postBtnCircle      = "xl:hidden w-[43px] h-[52px] rounded-full bg-[#1d9bf0] hover:bg-[#1a8cd8] flex items-center justify-center text-white mt-2.5 transition";
 
 // Sidebar bottom user card — avatar + name + handle + ⋯
-export const sidebarUserCard    = "relative flex items-center gap-5 p-4 rounded-full hover:bg-[#16181c] cursor-pointer transition mt-7";
+export const sidebarUserCard    = "relative flex items-center gap-4.5 p-5 rounded-full hover:bg-[#16181c] cursor-pointer transition mt-4";
 export const sidebarAvatar      = "w-15 h-15 rounded-full object-cover flex-shrink-0";
 export const sidebarUserName    = "text-[16px] font-bold text-[#e7e9ea] leading-tight";
 export const sidebarUserHandle  = "text-[#71767b] text-[16px] leading-tight";
@@ -129,7 +129,7 @@ export const composerWrapper    = "flex gap-5 px-4 md:px-9 pt-4 md:pt-5.5 border
 export const composerAvatar     = "mt-1.5 w-9 h-9 md:w-12 md:h-12 rounded-full object-cover flex-shrink-1 cursor-pointer";
 export const composerRight      = "flex-1 flex flex-col min-w-0";
 export const composerAudienceBtn= "text-[#1d9bf0] font-bold text-[13px] border border-[#1d9bf0] rounded-full px-3 py-0.5 w-fit mb-3 hover:bg-[#1d9bf0]/10 transition-colors cursor-pointer";
-export const composerTextarea   = "w-full h-5 md:h-16 bg-transparent text-[20px] text-[#e7e9ea] outline-none resize-none placeholder:text-[#71767b] min-h-[52px] leading-relaxed pt-1.5";
+export const composerTextarea   = "w-full bg-transparent text-[17px] text-[#e7e9ea] outline-none resize-none placeholder:text-[#71767b] min-h-[52px] max-h-[320px] leading-7 pt-1.5 scrollbar-thin scrollbar-thumb-[#2f3336]"; // auto-resize with JS, min height to show 2 lines
 export const composerToolbar    = "flex items-center justify-between border-t border-[#2f3336] py-2 md:pt-3 md:pb-2 px-0.5";
 export const composerActions    = "flex items-center gap-0.5";
 // Each icon in the toolbar row (📷 GIF 📊 😊 📍 🚩)

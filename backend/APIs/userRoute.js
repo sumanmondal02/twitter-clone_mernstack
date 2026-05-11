@@ -56,13 +56,15 @@ userRoute.get("/profile/:username", verifyToken, async (req, res, next) => {
 userRoute.put("/updateProfile", verifyToken, upload.single('profileImageUrl'), async (req, res, next) => {
     let cloudinaryResult = null; // to track if we uploaded a new image
     try {
-        const { username, bio, firstName, lastName, gender } = req.body;
+        const { username, bio, firstName, lastName, gender, dob, removeProfileImage } = req.body;
         const updateFields = {};
         if (username) updateFields.username = username;
         if (bio !== undefined) updateFields.bio = bio;
         if (firstName) updateFields.firstName = firstName;
         if (lastName !== undefined) updateFields.lastName = lastName;
         if (gender) updateFields.gender = gender;
+        if (dob) updateFields.dob = dob;
+        if (removeProfileImage === "true") { updateFields.profileImageUrl = null; }
         // let profileImageUrl = req.body.profileImageUrl || undefined; // fallback if no new file
         if (req.file) {
             cloudinaryResult = await uploadToCloudinary(req.file.buffer);
@@ -70,7 +72,7 @@ userRoute.put("/updateProfile", verifyToken, upload.single('profileImageUrl'), a
         }
         if (username) {
             const exists = await UserModel.findOne({ username });
-            if (exists && exists._id.toString() !== req.user._id.toString()) {
+            if (exists && exists._id.toString() !== req.user.id.toString()) {
                 return res.status(409).json({ message: "Username already taken" });
         }
         }
@@ -346,6 +348,7 @@ userRoute.get("/search", verifyToken, async (req, res, next) => {
             ],
             isDeactivated: false,
             isBlocked: false,
+            isAdmin: false, // exclude admins from search results
         }).select("username firstName lastName profileImageUrl followerCount bio")
           .limit(10); // limit results for performance
 
@@ -361,23 +364,48 @@ userRoute.get("/search", verifyToken, async (req, res, next) => {
 // GET A USER'S POSTS BY USERNAME
 userRoute.get("/posts/:username", verifyToken, async (req, res, next) => {
     try {
-        // Find the user by username first
-        const user = await UserModel.findOne({ username: req.params.username });
+
+        const user = await UserModel.findOne({
+            username: req.params.username
+        });
+
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return res.status(404).json({
+                message: "User not found"
+            });
         }
+
         if (user.isBlocked || user.isDeactivated) {
-            return res.status(403).json({ message: "This account is unavailable" });
+            return res.status(403).json({
+                message: "This account is unavailable"
+            });
         }
-        // Fetch all non-deleted posts by that user, newest first
-        const posts = await PostModel.find({ userId: user._id, isDeleted: false })
+
+        const isOwnProfile =
+            user._id.toString() === req.user.id.toString();
+
+        const query = {
+            userId: user._id
+        };
+
+        // ONLY OTHER USERS CANNOT SEE DELETED POSTS
+        if (!isOwnProfile) {
+            query.isDeleted = false;
+        }
+
+        const posts = await PostModel.find(query)
             .sort({ createdAt: -1 })
-            .populate("userId", "username firstName lastName profileImageUrl");
+            .populate(
+                "userId",
+                "username firstName lastName profileImageUrl"
+            );
 
         return res.status(200).json({
             message: "User posts fetched successfully",
             payload: posts,
+            isOwnProfile,
         });
+
     } catch (err) {
         next(err);
     }

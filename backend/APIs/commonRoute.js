@@ -86,9 +86,9 @@ commonRoute.post("/login", async (req, res, next) => {
           : "User not found, please check your username" 
       });
     } else if (user.isDeactivated === true) {
-      return res.status(403).json({ message: "Your account is deactivated, Press Enter to reactivate" });
+      return res.status(403).json({ message: "Your account is deactivated", isDeactivated: true });
     } else if (user.isBlocked === true) {
-      return res.status(403).json({ message: "Your account is blocked, Please contact support" });
+      return res.status(403).json({ message: "Your account is blocked, Please contact support", isBlocked: true });
     } else {
         const { _id, firstName, lastName, username, profileImageUrl, email, isAdmin } = user.toObject();
         const isMatched = await compare(password, user.password);
@@ -157,10 +157,10 @@ commonRoute.put("/change-password", verifyToken, async(req, res, next)=>{
             return res.status(404).json({message:"User not found"})
         }
         else if (user.isDeactivated === true) {
-            return res.status(403).json({message: "Your account is deactivated, Press Enter to reactivate"});
+            return res.status(403).json({message: "Your account is deactivated", isDeactivated: true});
         }
         else if (user.isBlocked === true) {
-            return res.status(403).json({message: "Your account is blocked, Please contact support"});
+            return res.status(403).json({message: "Your account is blocked, Please contact support", isBlocked: true});
         }
         else{
             //if current password or new password is missing in req body

@@ -68,8 +68,14 @@ const userSchema = new Schema({
     },
     bio:{
         type: String, 
-        maxLength: [160, "Bio cannot be more than 160 characters long"],
-        trim: true
+        trim: true,
+        validate: {
+            validator: function(value) {
+                if (!value) return true;
+                return value.trim().split(/\s+/).length <= 35;
+            },
+            message: "Bio cannot exceed 35 words"
+        }
     },
     isAdmin:{
         type: Boolean,

@@ -15,7 +15,7 @@ postRoute.post("/createpost", verifyToken, upload.single('mediaUrl'), async (req
     try {
         const userId = req.user.id;
         const { description } = req.body;
-        if (!description || description.trim() === "") {
+        if ((!description || description.trim() === "") && !req.file) {
             return res.status(400).json({ message: "Description is required" });
         }
         let mediaUrl = null;
@@ -29,7 +29,9 @@ postRoute.post("/createpost", verifyToken, upload.single('mediaUrl'), async (req
             mediaUrl: mediaUrl
         });
         await newPost.save();
-        return res.status(201).json({ message: "Post created successfully", payload: newPost });
+        const populatedPost = await PostModel.findById(newPost._id)
+                .populate( "userId", "username firstName lastName profileImageUrl" );
+        return res.status(201).json({ message: "Post created successfully", payload: populatedPost });
     } catch (err) {
         if (cloudinaryResult?.public_id) {
             await cloudinary.uploader.destroy(cloudinaryResult.public_id);
@@ -44,7 +46,7 @@ postRoute.patch('/editpost/:id', verifyToken, async (req, res, next) => {
         const userId = req.user.id;
         const { description } = req.body;
 
-        if (!description || description.trim() === "") {
+        if ((!description || description.trim() === "") && !req.file) {
             return res.status(400).json({ message: "Description cannot be empty" });
         }
         const postObj = await PostModel.findById(postId);
@@ -194,7 +196,12 @@ postRoute.patch('/likepost/:id', verifyToken, async (req, res, next) => {
                 postId: postId
             });
         }
-        return res.status(200).json({ message: "Liked the post" });
+        const updatedPost = await PostModel.findById(postId)
+            .populate(
+                "userId",
+                "username firstName lastName profileImageUrl"
+            );
+        return res.status(200).json({ message: "Liked the post", payload: updatedPost });
     } catch (err) {
         next(err);
     }
@@ -232,7 +239,12 @@ postRoute.patch('/unlikepost/:id', verifyToken, async (req, res, next) => {
             type: "like",
             postId: postId
         });
-        return res.status(200).json({ message: "Unliked the post" });
+        const updatedPost = await PostModel.findById(postId)
+            .populate(
+                "userId",
+                "username firstName lastName profileImageUrl"
+            );
+        return res.status(200).json({ message: "Unliked the post", payload: updatedPost });
     } catch (err) {
         next(err);
     }
@@ -272,7 +284,8 @@ postRoute.post('/comment/:id', verifyToken, async (req, res, next) => {
                 postId: postId
             });
         }
-        return res.status(200).json({ message: "Comment added successfully" });
+        const populatedPost = await PostModel.findById(postId).populate("userId", "username firstName lastName profileImageUrl").populate("comments.userId", "username firstName lastName profileImageUrl");
+        return res.status(200).json({ message: "Comment added successfully", payload: populatedPost });
     } catch (err) {
         next(err);
     }
@@ -314,7 +327,8 @@ postRoute.delete('/delcomment/:postId/:commentId', verifyToken, async (req, res,
             postId: postId,
             type: "comment"
         });
-        return res.status(200).json({ message: "Comment deleted successfully" });
+        const populatedPost = await PostModel.findById(postId).populate("userId", "username firstName lastName profileImageUrl").populate("comments.userId", "username firstName lastName profileImageUrl");
+        return res.status(200).json({ message: "Comment deleted successfully", payload: populatedPost });
     } catch (err) {
         next(err);
     }
@@ -331,8 +345,8 @@ postRoute.get("/feed", verifyToken, async (req, res, next) => {
                 payload: [],
             });
         }
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
         const skip = (page - 1) * limit;
         const posts = await PostModel.find({
             userId: { $in: followingIds },
@@ -341,10 +355,14 @@ postRoute.get("/feed", verifyToken, async (req, res, next) => {
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
-            .populate("userId", "username firstName lastName profileImageUrl");
+            .populate("userId", "username firstName lastName profileImageUrl")
+            .populate("comments.userId","username firstName lastName profileImageUrl");
+        const totalPosts = await PostModel.countDocuments({isDeleted: false,});
         return res.status(200).json({
+            success: true,
             message: "Feed fetched successfully",
-            payload: posts,
+            posts,
+            hasMore: skip + posts.length < totalPosts,
             page,
             limit,
         });
@@ -371,12 +389,15 @@ postRoute.get("/explore", verifyToken, async (req, res, next) => {
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
-            .populate("userId", "username firstName lastName profileImageUrl");
+            .populate("userId", "username firstName lastName profileImageUrl")
+            .populate("comments.userId","username firstName lastName profileImageUrl");
+        const totalPosts = await PostModel.countDocuments({isDeleted: false, userId: { $nin: unavailableIds }});
         return res.status(200).json({
             message: "Explore feed fetched successfully",
             payload: posts,
             page,
             limit,
+            hasMore: skip + posts.length < totalPosts
         });
     } catch (err) {
         next(err);

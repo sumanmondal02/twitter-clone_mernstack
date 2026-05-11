@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { RiTwitterXFill, RiCloseLine, RiEyeLine, RiEyeOffLine } from "react-icons/ri";
+import toast from "react-hot-toast";
 import * as s from "../styles/common";
 import axios from "axios";
 import { useAuth } from "../stores/authStore";
@@ -13,6 +14,11 @@ function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [localError, setLocalError] = useState("");
+  const [showReactivate, setShowReactivate] =
+  useState(false);
+
+const [isReactivating, setIsReactivating] =
+  useState(false);
   const API = import.meta.env.VITE_URL;
 
   useEffect(() => {
@@ -24,6 +30,20 @@ function Login() {
   useEffect(() => {
     if (error) setLocalError(error);
   }, [error]);
+
+  const handleBack = () => {
+
+  setStep(1);
+
+  setPassword("");
+
+  setLocalError("");
+
+  setShowReactivate(false);
+
+  clearError();
+
+};
 
   // accepts email OR username (backend handles both)
   const handleNext = (e) => {
@@ -46,25 +66,101 @@ function Login() {
   };
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    if (!password.trim()) {
-      setLocalError("Please enter your password.");
-      return;
+
+  e.preventDefault();
+
+  if (!password.trim()) {
+
+    setLocalError(
+      "Please enter your password."
+    );
+
+    return;
+  }
+
+  clearError();
+
+  setLocalError("");
+
+  const result = await login({
+    identifier: identifier.trim(),
+    password,
+  });
+
+  if (
+    !result.success &&
+    result.message
+      ?.toLowerCase()
+      .includes("deactivated")
+  ) {
+
+    setShowReactivate(true);
+
+  } else {
+
+    setShowReactivate(false);
+
+  }
+
+};
+
+  const handleReactivate =
+  async () => {
+
+  try {
+
+    setIsReactivating(true);
+
+    const emailOrUsername =
+      identifier.trim();
+
+    let email = emailOrUsername;
+
+    // if username entered instead of email
+    if (!email.includes("@")) {
+
+      return setLocalError(
+        "Please use your email address to reactivate account."
+      );
+
     }
-    clearError();
-    setLocalError("");
+
+    const res = await axios.post(
+      `${API}/auth/reactivate`,
+      {
+        email,
+        password,
+      }
+    );
+
+    toast.success(
+      res.data.message ||
+      "Account reactivated"
+    );
+
+    setShowReactivate(false);
+
+    // auto login after reactivation
+
     await login({
-      identifier: identifier.trim(), 
+      identifier: email,
       password,
     });
-  };
 
-  const handleBack = () => {
-    setStep(1);
-    setPassword("");
-    setLocalError("");
-    clearError();
-  };
+  } catch (err) {
+
+    setLocalError(
+      err.response?.data?.message ||
+      "Failed to reactivate account"
+    );
+
+  } finally {
+
+    setIsReactivating(false);
+
+  }
+
+};
 
   return (
     <div className={s.modalOverlay}>
@@ -164,6 +260,72 @@ function Login() {
               {localError && (
                 <div className={`${s.errorAlert} mt-3`}>{localError}</div>
               )}
+              {
+  showReactivate && (
+
+    <div
+      className="
+        mt-4
+        border
+        border-[#2f3336]
+        rounded-2xl
+        p-4
+        bg-[#0f0f0f]
+      "
+    >
+
+      <h3
+        className="
+          text-white
+          font-bold
+          text-[17px]
+          mb-2
+        "
+      >
+        Account Deactivated
+      </h3>
+
+      <p
+        className="
+          text-[#71767b]
+          text-sm
+          leading-relaxed
+          mb-4
+        "
+      >
+        Your account is currently
+        deactivated. Reactivate it
+        to continue using X.
+      </p>
+
+      <button
+        type="button"
+        onClick={handleReactivate}
+        disabled={isReactivating}
+        className="
+          w-full
+          h-[46px]
+          rounded-full
+          bg-white
+          text-black
+          font-bold
+          hover:bg-[#d7dbdc]
+          transition
+        "
+      >
+
+        {
+          isReactivating
+            ? "Reactivating..."
+            : "Reactivate Account"
+        }
+
+      </button>
+
+    </div>
+
+  )
+}
               <button
                 type="submit"
                 disabled={isLoggingIn || !password.trim()}

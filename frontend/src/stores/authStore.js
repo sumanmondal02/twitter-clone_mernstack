@@ -12,7 +12,7 @@ const normalize = (user) => {
 
 export const useAuth = create((set) => ({
   currentUser: JSON.parse(localStorage.getItem("currentUser")) || null,
-  isAuthenticated: false,
+  isAuthenticated: !!localStorage.getItem("currentUser"),
   isAdmin: false,
   error: null,
   isCheckingAuth: true,
@@ -77,7 +77,7 @@ export const useAuth = create((set) => ({
         // Even if logout request fails, we want to clear auth state on frontend
     } finally {
       localStorage.removeItem("currentUser");
-      set({
+      set({ 
         currentUser: null,
         isAuthenticated: false,
         isAdmin: false,
@@ -107,6 +107,24 @@ export const useAuth = create((set) => ({
       set({ isCheckingAuth: false });
     }
   },
+
+  updateCurrentUser: (updatedUser) => {
+
+  const normalizedUser = normalize(updatedUser);
+
+  localStorage.setItem(
+    "currentUser",
+    JSON.stringify(normalizedUser)
+  );
+
+  set({
+    currentUser: normalizedUser,
+    isAuthenticated: true,
+    isAdmin: normalizedUser?.isAdmin ?? false,
+  });
+
+},
+
   clearError: () => set({ error: null }),
   resetAuth: () => set({
     currentUser: null,

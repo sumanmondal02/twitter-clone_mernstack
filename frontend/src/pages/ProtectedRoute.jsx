@@ -4,7 +4,7 @@ import * as s from "../styles/common";
 
 function ProtectedRoute({ children }) {
 
-  const { isAuthenticated, isCheckingAuth } = useAuth();
+  const { isAuthenticated, isCheckingAuth, currentUser } = useAuth();
 
   if (isCheckingAuth) {
     return (
@@ -14,7 +14,7 @@ function ProtectedRoute({ children }) {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !currentUser) {
     return <Navigate to="/" replace />;
   }
 

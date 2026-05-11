@@ -9,6 +9,7 @@ import Home from "./pages/Home";
 import ProtectedRoute from "./pages/ProtectedRoute";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import Profile from "./pages/Profile";
 
 function App() {
   // check token when app opens
@@ -43,6 +44,14 @@ function App() {
       element: (
         <ProtectedRoute>
           <Home />
+        </ProtectedRoute>
+      )
+    },
+    {
+      path: "/profile/:username",
+      element: (
+        <ProtectedRoute>
+          <Profile />
         </ProtectedRoute>
       )
     }

@@ -1,11 +1,12 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "../stores/authStore";
+import ComposerModal from "./ComposerModal";
 import * as s from "../styles/common";
 
 import {
   RiTwitterXFill,
-  RiHome7Fill,
   RiSearchLine,
   RiNotification3Line,
   RiChat1Line,
@@ -14,11 +15,14 @@ import {
   RiQuillPenFill,
 } from "react-icons/ri";
 
+import { GrHomeRounded } from "react-icons/gr";
+
 function LeftSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { currentUser, logout } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
+  const [showComposer, setShowComposer] = useState(false);
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -36,7 +40,7 @@ function LeftSidebar() {
   const navItems = [
     {
       label: "Home",
-      icon: <RiHome7Fill className={s.navIcon} />,
+      icon: <GrHomeRounded className="text-[26px] ml-0.5 text-[#e7e9ea]" />,
       path: "/home",
     },
     {
@@ -96,14 +100,24 @@ function LeftSidebar() {
       </nav>
 
       {/* Post Button Desktop */}
-      <button className={s.postBtnWide}>
+      <button className={s.postBtnWide} onClick={() => setShowComposer(true)}>
         Post
       </button>
 
       {/* Post Button Mobile */}
-      <button className={s.postBtnCircle}>
+      <button className={s.postBtnCircle} onClick={() => setShowComposer(true)}>
         <RiQuillPenFill />
       </button>
+
+      {
+        showComposer && createPortal(
+          <ComposerModal
+            closeModal={() =>
+              setShowComposer(false)
+            }
+          />, document.body
+        )
+      }
 
       {/* Bottom User Card */}
       <div ref={menuRef} className={s.sidebarUserCard} onClick={() => setShowMenu(!showMenu)}>
