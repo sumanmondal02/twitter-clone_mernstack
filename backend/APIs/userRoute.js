@@ -271,7 +271,7 @@ userRoute.delete("/unfollow/:id", verifyToken, async (req, res, next) => {
 });
 
 // REMOVE A FOLLOWER — if you don't want someone following you, you can remove them from your followers list. This is different from blocking — they can still see your public profile and posts, but just won't be your follower anymore.
-userRoute.delete("/removeFollower/:id", verifyToken, async (req,res)=>{
+userRoute.delete("/removeFollower/:id", verifyToken, async (req,res, next)=>{
     try{
         const currentUserId = req.user.id;
         const followerId = req.params.id;
@@ -474,3 +474,99 @@ userRoute.get("/suggestions", verifyToken, async (req, res, next) => {
         return res.status(200).json({ message: "Suggestions", payload: suggestions });
     } catch (err) { next(err); }
 });
+
+// GET FOLLOWERS OF ANY PROFILE
+userRoute.get("/followers/:username", verifyToken, async (req, res, next) => {
+    try {
+      const profileUser = await UserModel.findOne({
+        username:req.params.username
+        .toLowerCase()
+        .trim()
+    });
+      if (!profileUser) {
+        return res.status(404).json({message:"User not found"});
+      }
+      const followerIds = profileUser.followers.map((f) => f.userId);
+      const followers = await UserModel.find({_id: {$in: followerIds},
+          isBlocked: false,
+          isDeactivated: false
+        })
+        .select(`
+          firstName
+          lastName
+          username
+          profileImageUrl
+          bio
+          followers
+        `)
+        .sort({firstName: 1});
+      const formattedFollowers = followers.map((user) => {
+          const isFollowing = user.followers.some((follower) => follower.userId.toString() === req.user.id
+            );
+            const isOwnProfile = user._id.toString() === req.user.id;
+          return {
+            _id: user._id,
+            firstName:user.firstName,
+            lastName:user.lastName,
+            username:user.username,
+            profileImageUrl:user.profileImageUrl,
+            bio:user.bio || "",
+            isFollowing,
+            isOwnProfile
+          };
+        });
+      return res.status(200).json({message:"Followers fetched", payload:formattedFollowers});
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// GET FOLLOWING OF ANY PROFILE
+userRoute.get("/following/:username", verifyToken, async (req, res, next) => {
+    try {
+      const profileUser = await UserModel.findOne({
+        username:req.params.username
+            .toLowerCase()
+            .trim()
+        });
+      if (!profileUser) {
+        return res.status(404).json({message:"User not found"});
+      }
+      const followingIds = profileUser.following.map((f) => f.userId);
+      const following = await UserModel.find({
+        _id: {
+            $in: followingIds
+          },
+        isBlocked: false,
+        isDeactivated: false
+        })
+        .select(`
+          firstName
+          lastName
+          username
+          profileImageUrl
+          bio
+          followers
+        `).sort({firstName: 1});
+      const formattedFollowing = following.map((user) => {
+          const isFollowing = user.followers.some((follower) => follower.userId.toString() === req.user.id
+            );
+          const isOwnProfile = user._id.toString() === req.user.id;
+          return {
+            _id: user._id,
+            firstName:user.firstName,
+            lastName:user.lastName,
+            username:user.username,
+            profileImageUrl:user.profileImageUrl,
+            bio:user.bio || "",
+            isFollowing,
+            isOwnProfile
+          };
+        });
+      return res.status(200).json({message:"Following fetched", payload:formattedFollowing});
+    } catch (err) {
+      next(err);
+    }
+  }
+);

@@ -34,10 +34,8 @@ function ComposerModal({ closeModal }) {
         className="
           relative
           bg-[#101010cf]
-          sm:border sm:border-[#2f3336]
           border border-[#2f3336]
           rounded-2xl
-          sm:rounded-2xl
           sm:shadow-[0_0_60px_rgba(0,0,0,0.95)]
           w-full
           sm:max-w-[700px]

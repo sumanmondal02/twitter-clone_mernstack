@@ -129,7 +129,7 @@ export const tabIndicator       = "absolute bottom-0 h-[4px] rounded-full bg-[#1
 
 // ─── TWEET COMPOSER (Image 4 — "What's happening?") ─────────────────────────
 export const composerWrapper    = "flex gap-5 px-4 md:px-9 pt-4 md:pt-5.5 border-b pb-0.5 md:pb-1 border-[#2f3336]";
-export const composerAvatar     = "mt-1.5 w-9 h-9 md:w-12 md:h-12 rounded-full object-cover flex-shrink-1 cursor-pointer ml-[-15px]";
+export const composerAvatar     = "mt-1.5 w-10 h-10 md:w-12 md:h-12 rounded-full object-cover flex-shrink-1 cursor-pointer";
 export const composerRight      = "flex-1 flex flex-col min-w-0";
 export const composerAudienceBtn= "text-[#1d9bf0] font-bold text-[13px] border border-[#1d9bf0] rounded-full px-3 py-0.5 w-fit mb-3 hover:bg-[#1d9bf0]/10 transition-colors cursor-pointer";
 export const composerTextarea   = "w-full bg-transparent text-[17px] text-[#e7e9ea] outline-none resize-none placeholder:text-[#71767b] min-h-[52px] max-h-[320px] leading-7 pt-1.5 scrollbar-thin scrollbar-thumb-[#2f3336]"; // auto-resize with JS, min height to show 2 lines

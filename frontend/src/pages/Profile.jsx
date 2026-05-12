@@ -4,6 +4,8 @@ import AppLayout from "../components/AppLayout";
 import EditProfileModal from "../components/EditProfileModal";
 import { useAuth } from "../stores/authStore";
 import { useProfile } from "../stores/profileStore";
+import FollowModal from "../components/FollowModal";
+import { useFollowStore } from "../stores/followStore"
 
 function Profile() {
   const { username } = useParams();
@@ -39,8 +41,10 @@ function Profile() {
     setShowFollowing,
   ] = useState(false);
 
-  const [searchText, setSearchText] =
-    useState("");
+  const {
+    fetchFollowers,
+    fetchFollowing,
+  } = useFollowStore();
 
   const [
     showEditModal,
@@ -291,44 +295,53 @@ function Profile() {
 
             {/* FOLLOWS */}
             <div className="flex gap-5 mt-3">
+                <div
+                  onClick={async () => {
 
-              <button
-                onClick={() =>
-                  setShowFollowing(true)
-                }
-                className="hover:underline"
+                    await fetchFollowing(
+                      profile.username
+                    );
+
+                    setShowFollowing(true);
+
+                  }}
+                  className="
+                    cursor-pointer
+                    hover:underline
+                  "
+                >
+                  <span className="font-bold text-white">
+                    {profile.followingCount}
+                  </span>
+
+                  <span className="text-[#71767b] ml-1">
+                    Following
+                  </span>
+                </div>
+
+              <div
+                onClick={async () => {
+
+                  await fetchFollowers(
+                    profile.username
+                  );
+
+                  setShowFollowers(true);
+
+                }}
+                className="
+                  cursor-pointer
+                  hover:underline
+                "
               >
-
                 <span className="font-bold text-white">
-                  {
-                    profileUser?.followingCount || 0
-                  }
-                </span>
-
-                <span className="text-[#71767b] ml-1">
-                  Following
-                </span>
-
-              </button>
-
-              <button
-                onClick={() =>
-                  setShowFollowers(true)
-                }
-                className="hover:underline"
-              >
-
-                <span className="font-bold text-white">
-                  {
-                    profileUser?.followerCount || 0
-                  }
+                  {profile.followerCount}
                 </span>
 
                 <span className="text-[#71767b] ml-1">
                   Followers
                 </span>
-
-              </button>
+              </div>
 
             </div>
 
@@ -392,96 +405,6 @@ function Profile() {
 
       </AppLayout>
 
-      {/* FOLLOWERS MODAL */}
-      {showFollowers && (
-        <div
-          onClick={() =>
-            setShowFollowers(false)
-          }
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center"
-        >
-
-          <div
-            onClick={(e) =>
-              e.stopPropagation()
-            }
-            className="w-full max-w-[600px] bg-black border border-[#2f3336] rounded-2xl overflow-hidden"
-          >
-
-            <div className="p-4 border-b border-[#2f3336]">
-
-              <div className="text-[20px] font-bold">
-                Followers
-              </div>
-
-              <input
-                type="text"
-                value={searchText}
-                onChange={(e) =>
-                  setSearchText(
-                    e.target.value
-                  )
-                }
-                placeholder="Search followers"
-                className="mt-4 w-full bg-[#16181c] border border-[#2f3336] rounded-full px-4 h-[42px] outline-none"
-              />
-
-            </div>
-
-            <div className="py-16 text-center text-[#71767b]">
-              No followers yet
-            </div>
-
-          </div>
-
-        </div>
-      )}
-
-      {/* FOLLOWING MODAL */}
-      {showFollowing && (
-        <div
-          onClick={() =>
-            setShowFollowing(false)
-          }
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center"
-        >
-
-          <div
-            onClick={(e) =>
-              e.stopPropagation()
-            }
-            className="w-full max-w-[600px] bg-black border border-[#2f3336] rounded-2xl overflow-hidden"
-          >
-
-            <div className="p-4 border-b border-[#2f3336]">
-
-              <div className="text-[20px] font-bold">
-                Following
-              </div>
-
-              <input
-                type="text"
-                value={searchText}
-                onChange={(e) =>
-                  setSearchText(
-                    e.target.value
-                  )
-                }
-                placeholder="Search following"
-                className="mt-4 w-full bg-[#16181c] border border-[#2f3336] rounded-full px-4 h-[42px] outline-none"
-              />
-
-            </div>
-
-            <div className="py-16 text-center text-[#71767b]">
-              Not following anyone yet
-            </div>
-
-          </div>
-
-        </div>
-      )}
-
       {/* EDIT PROFILE MODAL */}
       {
         showEditModal && (
@@ -490,6 +413,33 @@ function Profile() {
             profileUser={profileUser}
             closeModal={() =>
               setShowEditModal(false)
+            }
+          />
+
+        )
+      }
+      {
+        showFollowers && (
+
+          <FollowModal
+            title="Followers"
+            type="followers"
+            isOwnProfile={isOwnProfile}
+            closeModal={() => setShowFollowers(false)
+            }
+          />
+
+        )
+      }
+
+      {
+        showFollowing && (
+
+          <FollowModal
+            title="Following"
+            type="following"
+            isOwnProfile={isOwnProfile}
+            closeModal={() => setShowFollowing(false)
             }
           />
 

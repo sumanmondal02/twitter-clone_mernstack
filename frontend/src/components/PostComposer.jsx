@@ -168,7 +168,7 @@ function PostComposer({
           e.target.src = "https://upload.wikimedia.org/wikipedia/commons/0/03/Twitter_default_profile_400x400.png";
         }}
         alt="profile"
-        className={s.composerAvatar}
+        className={`${s.composerAvatar} ${modal ? "" : "md:ml-[-17px]"}`}
       />
 
       <div className={`${s.composerRight} ${modal ? "pt-2" : ""}`}>
