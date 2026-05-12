@@ -95,7 +95,16 @@ function SchedulePopover({ scheduledDate, setScheduledDate, closeSchedule }) {
         <input
           type="time"
           value={time}
-          onChange={(e) => setTime(e.target.value)}
+          min={
+            date === todayStr
+              ? new Date()
+                  .toTimeString()
+                  .slice(0, 5)
+              : undefined
+          }
+          onChange={(e) =>
+            setTime(e.target.value)
+          }
           className="
             w-full bg-transparent
             border border-[#2f3336]

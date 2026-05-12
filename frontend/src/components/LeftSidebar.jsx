@@ -8,14 +8,20 @@ import * as s from "../styles/common";
 import {
   RiTwitterXFill,
   RiSearchLine,
+  RiSearchFill,
   RiNotification3Line,
+  RiNotification3Fill,
   RiChat1Line,
+  RiChat1Fill,
   RiBookmarkLine,
+  RiBookmarkFill,
   RiUserLine,
+  RiUserFill,
   RiQuillPenFill,
+
 } from "react-icons/ri";
 
-import { GrHomeRounded } from "react-icons/gr";
+import { GoHome, GoHomeFill } from "react-icons/go";
 
 function LeftSidebar() {
   const navigate = useNavigate();
@@ -40,7 +46,11 @@ function LeftSidebar() {
   const navItems = [
     {
       label: "Home",
-      icon: <GrHomeRounded className="text-[26px] ml-0.5 text-[#e7e9ea]" />,
+      icon: (
+      location.pathname === "/home"
+      ? <GoHomeFill className="text-[32px] ml-[-1px] text-[#e7e9ea]" />
+      : <GoHome className="text-[32px] ml-[-1px] text-[#e7e9ea]" />
+      ),
       path: "/home",
     },
     {
@@ -50,22 +60,37 @@ function LeftSidebar() {
     },
     {
       label: "Notifications",
-      icon: <RiNotification3Line className={s.navIcon} />,
+      icon:
+        location.pathname === "/notifications"
+          ? <RiNotification3Fill className={s.navIcon} />
+          : <RiNotification3Line className={s.navIcon} />,
       path: "/notifications",
     },
     {
       label: "Messages",
-      icon: <RiChat1Line className={s.navIcon} />,
+      icon:(
+        location.pathname === "/messages"
+          ? <RiChat1Fill className={s.navIcon} />
+          : <RiChat1Line className={s.navIcon} />
+      ),
       path: "/messages",
     },
     {
       label: "Bookmarks",
-      icon: <RiBookmarkLine className={s.navIcon} />,
+      icon: (
+        location.pathname === "/bookmarks"
+          ? <RiBookmarkFill className={s.navIcon} />
+          : <RiBookmarkLine className={s.navIcon} />
+      ),
       path: "/bookmarks",
     },
     {
       label: "Profile",
-      icon: <RiUserLine className={s.navIcon} />,
+      icon: (
+        location.pathname === `/profile/${currentUser?.username}`
+          ? <RiUserFill className={s.navIcon} />
+          : <RiUserLine className={s.navIcon} />
+      ),
       path: `/profile/${currentUser?.username}`,
     },
   ];
@@ -101,7 +126,9 @@ function LeftSidebar() {
 
       {/* Post Button Desktop */}
       <button className={s.postBtnWide} onClick={() => setShowComposer(true)}>
-        Post
+        <div className="text-[20px]">
+          Post
+        </div>
       </button>
 
       {/* Post Button Mobile */}
@@ -148,7 +175,7 @@ function LeftSidebar() {
           className={s.avatarMd}
         />
 
-        <div className="hidden xl:block overflow-hidden">
+        <div className="hidden xl:block">
           <div className={s.sidebarUserName}>
             {currentUser?.firstName} {currentUser?.lastName}
           </div>

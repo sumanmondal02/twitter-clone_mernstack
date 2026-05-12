@@ -131,6 +131,7 @@ export const usePost = create((set, get) => ({
   createPost: async ({
     description,
     image,
+    scheduledDate,
   }) => {
     try {
       set({
@@ -144,6 +145,14 @@ export const usePost = create((set, get) => ({
         "description",
         description
       );
+
+      if (scheduledDate) {
+        formData.append(
+            "scheduledDate",
+            scheduledDate
+        );
+
+    }
 
       if (image) {
         formData.append(

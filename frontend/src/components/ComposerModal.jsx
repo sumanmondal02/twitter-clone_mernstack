@@ -1,7 +1,16 @@
 import { RiCloseLine } from "react-icons/ri";
 import PostComposer from "./PostComposer";
+import { useEffect, useRef } from "react";
 
 function ComposerModal({ closeModal }) {
+  const modalRef = useRef(null);
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
   return (
     // Overlay — fixed, full screen, very dark, no blur
     <div
@@ -13,8 +22,10 @@ function ComposerModal({ closeModal }) {
         backdrop-blur-sm
         items-start
         justify-center
-        pt-0
+        pt-[38vh]
         sm:pt-[5vh]
+        overflow-y-auto
+        overflow-x-hidden
       "
       onClick={closeModal}
     >
@@ -24,13 +35,17 @@ function ComposerModal({ closeModal }) {
           relative
           bg-[#101010cf]
           sm:border sm:border-[#2f3336]
+          border border-[#2f3336]
+          rounded-2xl
           sm:rounded-2xl
           sm:shadow-[0_0_60px_rgba(0,0,0,0.95)]
           w-full
           sm:max-w-[700px]
-          h-full
-          sm:h-auto
-          sm:min-h-[270px]
+          max-w-[95vw]
+          h-auto
+          sm:min-h-[200px]
+          max-sm:h-screen
+          mb-4
           overflow-y-auto
           overflow-x-hidden
         "

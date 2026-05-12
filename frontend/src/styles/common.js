@@ -14,8 +14,8 @@ export const colors = {
   text:           "#e7e9ea",   // primary text
   textMuted:      "#71767b",   // secondary / placeholder text
   textSecondary:  "#8b98a5",   // tertiary hints
-  like:           "#f91880",   // heart / like — X uses pink NOT red
-  likeHover:      "#f91880",
+  like:           "#d40b29",   // heart / like — X uses pink NOT red
+  likeHover:      "#d40b29",
   repost:         "#00ba7c",   // repost / green
   danger:         "#f4212e",   // delete, block, danger actions
   dangerHover:    "#d92838",
@@ -74,11 +74,12 @@ export const pageWrapper        = "max-w-[1500px] mx-auto flex min-h-screen over
 
 // ─── THREE-COLUMN LAYOUT ─────────────────────────────────────────────────────
 // Left sidebar — fixed, 275px (88px on medium, icons only)
-export const leftSidebar        = "fixed top-0 left-0 h-screen w-[62px] xl:w-[270px] border-r border-[#2f3336] flex justify-center xl:justify-end";
-export const leftSidebarInner   = "h-screen flex flex-col items-center xl:items-start px-4 py-5 gap-2";
+export const leftSidebar        = "fixed top-0 left-0 h-screen w-[63px] xl:w-[275px] border-r border-[#2f3336] flex justify-center xl:justify-end";
+// export const leftSidebarInner   = "h-screen flex flex-col items-center xl:items-start px-4 py-5 gap-2";
+export const leftSidebarInner   = "h-screen w-full max-w-[250px] flex flex-col items-center xl:items-start px-3 py-5 gap-2";
 // Main feed column — ml offset matches sidebar, mr offset matches right panel
 // export const feedColumn         = "flex-1 min-h-screen border-x border-[#2f3336] ml-[82px] xl:ml-[260px] lg:mr-[300px]";
-export const feedColumn         = "flex-1 min-h-screen border-x border-[#2f3336] ml-[62px] xl:ml-[270px] lg:mr-[425px] mr-0 w-full overflow-x-hidden"; // add horizontal padding to feed
+export const feedColumn         = "flex-1 min-h-screen border-x border-[#2f3336] ml-[62px] xl:ml-[275px] lg:mr-[425px] mr-0 w-full overflow-x-hidden"; // add horizontal padding to feed
 // Right panel — fixed, 350px, hidden below xl
 export const rightPanel         = "hidden lg:block fixed top-0 right-3 w-[410px] h-screen overflow-y-auto px-4 py-4 xl:px-6";
 export const logoutPopup        = "absolute bottom-20 left-1 bg-black border border-[#2f3336] rounded-3xl shadow-2xl overflow-hidden w-[220px] transition-colors";
@@ -88,28 +89,30 @@ export const logoutBtn          = "w-full text-left px-4 py-4 hover:bg-[#16181c]
 // X Logo at top — just the X icon, 50px hit target
 // export const sidebarXLogo       = "w-[56px] h-[56px] rounded-full flex items-center justify-center hover:bg-[#181818] transition cursor-pointer mb-3 self-center xl:self-start";
 export const sidebarXLogo       = "w-full h-[72px] flex items-center justify-center hover:bg-[#181818] transition cursor-pointer mt-3 mb-5 rounded-full";
-export const sidebarNav         = "flex flex-col gap-1 mt-5 xl:mt-0.5 flex-1 w-full";
+export const sidebarNav         = "flex flex-col gap-1 mt-5 xl:mt-0.5 flex-1 w-full items-center xl:items-start";
 
 // Nav item — icon always shows, label only on xl screens
 // X uses no emoji — icons are SVG stroke icons (react-icons/ri or similar)
-export const navItem            = "group flex items-center justify-center xl:justify-start gap-5 xl:px-3 w-full h-[58px] rounded-full hover:bg-[#181818] transition cursor-pointer";
-export const navItemActive      = "group flex items-center gap-5 px-3 py-[11px] rounded-full hover:bg-[#181818] transition-colors duration-200 cursor-pointer w-fit mx-auto xl:mx-0";
+// export const navItem            = "group flex items-center justify-center lg:justify-start gap-5 px-3 w-fit min-w-[220px] h-[58px] rounded-full transition-colors duration-200 cursor-pointer mx-auto lg:mx-0 hover:bg-[#16181c]";
+export const navItem            = "group flex items-center justify-center xl:justify-start gap-5 xl:px-3 w-full lg:w-[220px] h-[58px] rounded-full transition-colors duration-200 cursor-pointer hover:bg-[#16181c]";
+// export const navItemActive      = "group flex items-center justify-center lg:justify-start gap-5 px-3 w-fit min-w-[220px] h-[58px] rounded-full transition-colors duration-200 cursor-pointer mx-auto lg:mx-0";
+export const navItemActive      = "group flex items-center justify-center xl:justify-start gap-5 xl:px-3 w-full lg:w-[220px] h-[58px] rounded-full transition-colors duration-200 cursor-pointer";
 export const navIcon            = "text-[28px] text-[#e7e9ea]"; // size for react-icon
-export const navLabel           = "hidden xl:block text-[21px] text-[#e7e9ea]"; // hidden on small
-export const navLabelActive     = "hidden xl:block text-[21px] text-[#e7e9ea] font-bold";
+export const navLabel           = "hidden xl:block text-[20px] text-[#e7e9ea] font-normal"; // hidden on small
+export const navLabelActive     = "hidden xl:block text-[20px] text-[#e7e9ea] font-bold";
 // Notification badge dot on nav icon
 export const navBadge           = "absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-[#1d9bf0] text-white text-[11px] font-bold rounded-full flex items-center justify-center px-1";
 
 // Post button — wide on xl, circle icon only on small
 export const postBtnWide        = "hidden xl:flex items-center justify-center w-[95%] h-[54px] rounded-full bg-[#1d9bf0] hover:bg-[#1a8cd8] transition font-bold text-[17px] text-white mt-2.5";
-export const postBtnCircle      = "xl:hidden w-[43px] h-[52px] rounded-full bg-[#1d9bf0] hover:bg-[#1a8cd8] flex items-center justify-center text-white mt-2.5 transition";
+export const postBtnCircle      = "xl:hidden w-[45px] h-[48px] rounded-full bg-[#1d9bf0] hover:bg-[#1a8cd8] flex items-center justify-center text-white mt-2.5 transition";
 
 // Sidebar bottom user card — avatar + name + handle + ⋯
-export const sidebarUserCard    = "relative flex items-center gap-4.5 p-5 rounded-full hover:bg-[#16181c] cursor-pointer transition mt-4";
-export const sidebarAvatar      = "w-15 h-15 rounded-full object-cover flex-shrink-0";
+export const sidebarUserCard    = "relative flex items-center justify-center xl:justify-start gap-4 p-2 xl:p-3 rounded-full hover:bg-[#16181c] cursor-pointer transition mt-7 w-[75px] xl:w-full";
+export const sidebarAvatar      = "w-10 h-10 rounded-full object-cover flex-shrink-0";
 export const sidebarUserName    = "text-[16px] font-bold text-[#e7e9ea] leading-tight";
 export const sidebarUserHandle  = "text-[#71767b] text-[16px] leading-tight";
-// export const sidebarUserMore    = "ml-auto text-[#e7e9ea] hidden xl:block";
+// export const sidebarUserMore    = "ml-auto text-[#e7e9ea] hidden lg:block";
 
 // ─── TOP BAR / HEADER (sticky, blurred) ──────────────────────────────────────
 export const topBar             = "sticky top-0 z-10 bg-black/80 backdrop-blur-md border-b border-[#2f3336] px-4 h-[53px] flex items-center gap-4";
@@ -126,7 +129,7 @@ export const tabIndicator       = "absolute bottom-0 h-[4px] rounded-full bg-[#1
 
 // ─── TWEET COMPOSER (Image 4 — "What's happening?") ─────────────────────────
 export const composerWrapper    = "flex gap-5 px-4 md:px-9 pt-4 md:pt-5.5 border-b pb-0.5 md:pb-1 border-[#2f3336]";
-export const composerAvatar     = "mt-1.5 w-9 h-9 md:w-12 md:h-12 rounded-full object-cover flex-shrink-1 cursor-pointer";
+export const composerAvatar     = "mt-1.5 w-9 h-9 md:w-12 md:h-12 rounded-full object-cover flex-shrink-1 cursor-pointer ml-[-15px]";
 export const composerRight      = "flex-1 flex flex-col min-w-0";
 export const composerAudienceBtn= "text-[#1d9bf0] font-bold text-[13px] border border-[#1d9bf0] rounded-full px-3 py-0.5 w-fit mb-3 hover:bg-[#1d9bf0]/10 transition-colors cursor-pointer";
 export const composerTextarea   = "w-full bg-transparent text-[17px] text-[#e7e9ea] outline-none resize-none placeholder:text-[#71767b] min-h-[52px] max-h-[320px] leading-7 pt-1.5 scrollbar-thin scrollbar-thumb-[#2f3336]"; // auto-resize with JS, min height to show 2 lines
@@ -174,17 +177,18 @@ export const tweetActions       = "flex items-center justify-between mt-2 -ml-2 
 
 // Each action group: icon button + count
 export const tweetActionGroup   = "flex items-center group cursor-pointer";
-export const tweetActionIconWrap= "w-[34px] h-[34px] flex items-center justify-center rounded-full transition-colors text-[#71767b] text-[18px]";
+export const tweetActionIconWrap= "w-8 h-8 flex items-center justify-center rounded-full transition-colors text-current text-[18px]";
 export const tweetActionCount   = "text-[13px] text-[#71767b] tabular-nums group-hover:text-inherit transition-colors -ml-0.5";
 
 // Action-specific HOVER colors (apply via group-hover on parent group)
 // Comment  → blue
 export const commentHover       = "group-hover:text-[#1d9bf0] group-hover:[&_div]:bg-[#1d9bf0]/10";
+export const commentActive      = "text-[#1d9bf0]";
 // Repost   → green
 export const repostHover        = "group-hover:text-[#00ba7c] group-hover:[&_div]:bg-[#00ba7c]/10";
 // Like     → pink (X uses #f91880, NOT red)
-export const likeHover          = "group-hover:text-[#f91880] group-hover:[&_div]:bg-[#f91880]/10";
-export const likeActive         = "text-[#f91880] [&_div]:bg-[#f91880]/10"; // already liked state
+export const likeHover          = "group-hover:text-[#d40b29]";
+export const likeActive         = "text-[#d40b29]"; // already liked state
 // Views    → blue
 export const viewsHover         = "group-hover:text-[#1d9bf0] group-hover:[&_div]:bg-[#1d9bf0]/10";
 // Bookmark → blue

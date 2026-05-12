@@ -13,7 +13,16 @@ function CustomDatePicker({ value, onChange }) {
 
       <DatePicker
         selected={value ? new Date(value) : null}
-        onChange={(date) => onChange(date)}
+        onChange={(date) => {
+          if (!date) return onChange(null);
+          const normalized = new Date(Date.UTC(
+            date.getFullYear(),
+            date.getMonth(),
+            date.getDate(),
+            12, 0, 0
+          ));
+          onChange(normalized);
+        }}
         dateFormat="dd/MM/yyyy"
         showYearDropdown
         scrollableYearDropdown

@@ -121,6 +121,7 @@ function PostComposer({
     const res = await createPost({
       description: text,
       image,
+      scheduledDate,
     });
 
     if (!res.success) {
@@ -137,6 +138,7 @@ function PostComposer({
     removeImage();
 
     setScheduledDate(null);
+    setShowSchedule(false);
 
     if (textareaRef.current) {
       textareaRef.current.style.height =
@@ -334,8 +336,8 @@ function PostComposer({
             `}
           >
             {isPosting
-              ? "Uploading..."
-              : "Post"}
+              ? "Uploading..." : scheduledDate
+              ? "Schedule" : "Post"}
           </button>
         </div>
       </div>

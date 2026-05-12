@@ -504,7 +504,7 @@ if (
                 }
               `}
             >
-              Change password
+              Security
             </button>
 
           </div>
@@ -562,7 +562,7 @@ if (
                   }
                 `}
               >
-                Password
+                Security
               </button>
 
             </div>
@@ -864,8 +864,10 @@ if (
     <div className="space-y-5">
 
       {/* CURRENT PASSWORD */}
+      <div className="text-white text-extrabold ml-1 text-lg">Change Password</div>
 
       <div className={s.authInputWrap}>
+
 
         <label className={s.authInputLabel}>
           Current Password
@@ -978,6 +980,9 @@ if (
         </div>
 
       </div>
+      <p className="text-white text-xs ml-1">*Forgotten your password?*
+        <p className="ml-1 justify-between mt-1.5">logout and reset your password. A reset link will be sent to your email.</p>
+      </p>
 
       {/* DEACTIVATE ACCOUNT */}
 

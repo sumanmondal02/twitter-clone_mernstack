@@ -408,6 +408,7 @@ userRoute.get("/posts/:username", verifyToken, async (req, res, next) => {
         // ONLY OTHER USERS CANNOT SEE DELETED POSTS
         if (!isOwnProfile) {
             query.isDeleted = false;
+            query.isPublished = true;
         }
 
         const posts = await PostModel.find(query)

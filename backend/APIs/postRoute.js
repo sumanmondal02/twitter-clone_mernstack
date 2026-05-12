@@ -14,19 +14,37 @@ postRoute.post("/createpost", verifyToken, upload.single('mediaUrl'), async (req
     let cloudinaryResult = null;
     try {
         const userId = req.user.id;
-        const { description } = req.body;
+        const { description, scheduledDate } = req.body;
         if ((!description || description.trim() === "") && !req.file) {
             return res.status(400).json({ message: "Description is required" });
         }
         let mediaUrl = null;
+        let isScheduled = false;
+        let isPublished = true;
+        let scheduledFor = null;
+        if (scheduledDate) {
+            const parsedDate = new Date(scheduledDate);
+            if (isNaN(parsedDate.getTime())) {
+                return res.status(400).json({message:"Invalid schedule date"});
+            }
+            if (parsedDate <= new Date()) {
+                return res.status(400).json({message:"Schedule time must be in future"});
+            }
+            isScheduled = true;
+            isPublished = false;
+            scheduledFor = parsedDate;
+        }
         if (req.file) {
             cloudinaryResult = await uploadToCloudinary(req.file.buffer);
             mediaUrl = cloudinaryResult.secure_url;
         }
         const newPost = new PostModel({
             userId: userId,
-            description: description,
-            mediaUrl: mediaUrl
+            description: description?.trim() || "",
+            mediaUrl: mediaUrl,
+            isScheduled,
+            scheduledFor,
+            isPublished
         });
         await newPost.save();
         const populatedPost = await PostModel.findById(newPost._id)
@@ -44,10 +62,15 @@ postRoute.patch('/editpost/:id', verifyToken, async (req, res, next) => {
     try {
         const postId = req.params.id;
         const userId = req.user.id;
-        const { description } = req.body;
-
-        if ((!description || description.trim() === "") && !req.file) {
-            return res.status(400).json({ message: "Description cannot be empty" });
+        const { description, scheduledDate, removeSchedule, publishNow } = req.body;
+        const hasDescription = typeof description === "string";
+        if (
+            !description &&
+            !scheduledDate &&
+            removeSchedule !== "true" &&
+            publishNow !== "true"
+        ) {
+            return res.status(400).json({message: "Nothing to update"});
         }
         const postObj = await PostModel.findById(postId);
         if (!postObj) {
@@ -59,13 +82,34 @@ postRoute.patch('/editpost/:id', verifyToken, async (req, res, next) => {
         if (postObj.userId.toString() !== userId.toString()) {
             return res.status(403).json({ message: "Not authorized to edit this post" });
         }
-        const updated = await PostModel.findByIdAndUpdate(postId,
-            {
-                description: description.trim(),
-                isEdited: true,
-                editedAt: new Date()
-            }, { new: true, runValidators: true }
-        );
+        const updateFields = {
+            isEdited: true,
+            editedAt: new Date()
+        };
+        if (description) {
+            updateFields.description = description.trim();
+        }
+        if (publishNow === "true") {
+            updateFields.isScheduled = false;
+            updateFields.scheduledFor = null;
+            updateFields.isPublished = true;
+        } else if (removeSchedule === "true") {
+            updateFields.isScheduled = false;
+            updateFields.scheduledFor = null;
+            updateFields.isPublished = true;
+        } else if (scheduledDate) {
+            const parsedDate = new Date(scheduledDate);
+            if (isNaN(parsedDate.getTime())) {
+                return res.status(400).json({message:"Invalid schedule date"});
+            }
+            if (parsedDate <= new Date()) {
+                return res.status(400).json({message:"Schedule must be future time"});
+            }
+            updateFields.isScheduled = true;
+            updateFields.scheduledFor = parsedDate;
+            updateFields.isPublished = false;
+        }
+        const updated = await PostModel.findByIdAndUpdate(postId, updateFields, { new: true, runValidators: true });
         return res.status(200).json({ message: "Post updated successfully", payload: updated });
     } catch (err) {
         next(err);
@@ -83,6 +127,13 @@ postRoute.get('/viewpost/:id', verifyToken, async (req, res, next) => {
         }
         if (postObj.isDeleted === true) {
             return res.status(404).json({ message: "This post has been deleted" });
+        }
+        if (
+            postObj.isPublished === false &&
+            postObj.userId.toString() !==
+            req.user.id.toString()
+        ) {
+            return res.status(403).json({message: "This post is not available"});
         }
         const postOwner = await UserModel.findById(postObj.userId);
         if (!postOwner || postOwner.isDeactivated || postOwner.isBlocked) {
@@ -107,7 +158,8 @@ postRoute.get('/count/:username', verifyToken, async (req, res, next) => {
         // countDocuments is much cheaper than fetching all posts
         const count = await PostModel.countDocuments({
             userId: user._id,
-            isDeleted: false
+            isDeleted: false,
+            isPublished: true
         });
         return res.status(200).json({ message: "Post count fetched", payload: { count } });
     } catch (err) {
@@ -351,13 +403,14 @@ postRoute.get("/feed", verifyToken, async (req, res, next) => {
         const posts = await PostModel.find({
             userId: { $in: followingIds },
             isDeleted: false,
+            isPublished: true
         })
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
             .populate("userId", "username firstName lastName profileImageUrl")
             .populate("comments.userId","username firstName lastName profileImageUrl");
-        const totalPosts = await PostModel.countDocuments({isDeleted: false,});
+        const totalPosts = await PostModel.countDocuments({isDeleted: false, isPublished: true, userId: { $in: followingIds }});
         return res.status(200).json({
             success: true,
             message: "Feed fetched successfully",
@@ -384,14 +437,15 @@ postRoute.get("/explore", verifyToken, async (req, res, next) => {
         const unavailableIds = unavailableUsers.map(u => u._id);
         const posts = await PostModel.find({
             isDeleted: false,
-            userId: { $nin: unavailableIds }
+            userId: { $nin: unavailableIds },
+            isPublished: true,
         })
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
             .populate("userId", "username firstName lastName profileImageUrl")
             .populate("comments.userId","username firstName lastName profileImageUrl");
-        const totalPosts = await PostModel.countDocuments({isDeleted: false, userId: { $nin: unavailableIds }});
+        const totalPosts = await PostModel.countDocuments({isDeleted: false, isPublished: true,  userId: { $nin: unavailableIds }});
         return res.status(200).json({
             message: "Explore feed fetched successfully",
             payload: posts,

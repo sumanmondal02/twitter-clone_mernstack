@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   RiChat1Line,
+  RiChat1Fill,
   RiHeartFill,
   RiHeartLine,
   RiMoreFill,
@@ -73,16 +74,31 @@ function PostCard({ post }) {
   }, [post.likes, currentUser]);
 
   const formattedTime =
-    new Date(post.createdAt).toLocaleDateString(
-      "en-US",
-      {
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      }
-    );
+    <div className="flex items-center gap-1 text-[#71767b] text-[13.5px] leading-none">
+
+  <span>
+    {new Date(post.createdAt).toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })}
+  </span>
+
+  {
+    post.isEdited &&
+    post.editedAt && (
+      <span className="text-[#71767b]">
+        · Edited{" "}
+        {
+          dayjs(post.editedAt).fromNow()
+        }
+      </span>
+    )
+  }
+
+</div>
 
   // =========================
   // DELETE POST
@@ -501,11 +517,15 @@ function PostCard({ post }) {
               }
 
             }}
-            className={`comment-trigger ${s.tweetActionGroup} ${s.commentHover}`}
+            className={`comment-trigger ${s.tweetActionGroup} ${showComments ? s.commentActive : s.commentHover}`}
           >
 
             <div className={s.tweetActionIconWrap}>
-              <RiChat1Line />
+              {
+                showComments
+                  ? <RiChat1Fill />
+                  : <RiChat1Line />
+              }
             </div>
 
             <span className={s.tweetActionCount}>

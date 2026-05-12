@@ -73,6 +73,20 @@ const postSchema = new Schema({
         type: Date,
         default: null
     },
+    isScheduled: {
+        type: Boolean,
+        default: false
+    },
+
+    scheduledFor: {
+        type: Date,
+        default: null
+    },
+
+    isPublished: {
+        type: Boolean,
+        default: true
+    },
 },
 {
     timestamps: true,
@@ -80,5 +94,6 @@ const postSchema = new Schema({
     strict: "throw"
 });
 
+postSchema.path("createdAt").immutable(false);
 
 export const PostModel = model("Post", postSchema)

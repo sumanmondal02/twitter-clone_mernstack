@@ -1,6 +1,7 @@
 import exp from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import "./config/scheduledPostWorker.js";
 import {config} from "dotenv";
 import {connect} from "mongoose";
 import {userRoute} from "./APIs/userRoute.js";

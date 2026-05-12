@@ -162,7 +162,7 @@ function Profile() {
           <div className="sticky top-0 z-30 backdrop-blur-md bg-black/70 px-4 py-3 flex items-center gap-5">
 
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => navigate("/home")}
               className="w-10 h-10 rounded-full hover:bg-[#181818] transition flex items-center justify-center text-[24px] text-white"
             >
               ←
@@ -189,7 +189,7 @@ function Profile() {
             <img
               src="https://img.freepik.com/free-vector/realistic-spider-web-background_107791-26720.jpg?semt=ais_hybrid&w=740&q=80"
               alt="cover"
-              className="w-full h-[210px] object-cover"
+              className="w-full blur-[2px] h-[150px] sm:h-[210px] object-cover"
             />
 
             <img
@@ -242,7 +242,7 @@ function Profile() {
             </div>
 
             {/* NAME */}
-            <div className="mt-1">
+            <div className="mt-0.5">
 
               <h1 className="text-[28px] font-extrabold text-white leading-tight">
                 {profileUser?.firstName}{" "}
@@ -255,11 +255,12 @@ function Profile() {
               { profileUser?.bio && (
                 <div
                   className="
-                    mt-3
+                    mt-1.5
                     text-white
-                    text-[15px]
+                    text-[16px]
                     whitespace-pre-wrap
                     break-words
+                    ml-1
                     leading-relaxed
                   "
                 >
@@ -270,7 +271,7 @@ function Profile() {
             </div>
 
             {/* JOIN DATE */}
-            <div className="mt-4 text-[#71767b] text-[15px]">
+            <div className="mt-2 text-[#71767b] text-[14.5px]">
 
               Joined{" "}
 
@@ -289,7 +290,7 @@ function Profile() {
             </div>
 
             {/* FOLLOWS */}
-            <div className="flex gap-5 mt-4">
+            <div className="flex gap-5 mt-3">
 
               <button
                 onClick={() =>
