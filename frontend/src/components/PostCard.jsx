@@ -27,6 +27,7 @@ function PostCard({ post }) {
   const {
     toggleLike,
     deletePost,
+    recoverPost,
     addComment,
     deleteComment,
     activeCommentPostId,
@@ -63,42 +64,22 @@ function PostCard({ post }) {
 
   const isLiked = useMemo(() => {
 
-    if (!currentUser) return false;
+  if (!currentUser) return false;
 
-    return post.likes?.some(
-      (like) =>
-        like.userId?.toString?.() === currentUser.id ||
-        like.userId === currentUser.id
+  return post.likes?.some((like) => {
+
+    const likedUserId =
+      like.userId?._id ||
+      like.userId;
+
+    return (
+      likedUserId?.toString() ===
+      currentUser.id?.toString()
     );
 
-  }, [post.likes, currentUser]);
+  });
 
-  const formattedTime =
-    <div className="flex items-center gap-1 text-[#71767b] text-[13.5px] leading-none">
-
-  <span>
-    {new Date(post.createdAt).toLocaleString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    })}
-  </span>
-
-  {
-    post.isEdited &&
-    post.editedAt && (
-      <span className="text-[#71767b]">
-        · Edited{" "}
-        {
-          dayjs(post.editedAt).fromNow()
-        }
-      </span>
-    )
-  }
-
-</div>
+}, [post.likes, currentUser]);
 
   // =========================
   // DELETE POST
@@ -115,6 +96,7 @@ function PostCard({ post }) {
       ) return;
 
       await deletePost(post._id);
+      setShowMenu(false);
 
     };
 
@@ -260,7 +242,7 @@ function PostCard({ post }) {
 
   return (
 
-    <article className={s.tweetCard}>
+    <article className={`${s.tweetCard}${post.isDeleted ? " opacity-95" : ""}`}>
 
       {/* AVATAR */}
       <img
@@ -284,40 +266,46 @@ function PostCard({ post }) {
   <div className="min-w-0">
 
     {/* NAME + TIME */}
-    <div className="flex items-center gap-2 flex-wrap">
+<div className="flex flex-wrap items-center gap-x-2 gap-y-0 min-w-0">
+  <span
+    onClick={() => navigate(`/profile/${post.userId?.username}`)}
+    className={`${s.tweetName} cursor-pointer hover:underline`}
+  >
+    {post.userId?.firstName} {post.userId?.lastName}
+  </span>
 
-      <span
-        onClick={() =>
-          navigate(`/profile/${post.userId?.username}`)
-        }
-        className={`${s.tweetName} cursor-pointer hover:underline`}
-      >
-        {post.userId?.firstName}{" "}
-        {post.userId?.lastName}
-      </span>
+  {/* inline on md+, hidden on small */}
+  <span className="hidden sm:flex items-center gap-2 text-[#71767b] text-[12.5px] whitespace-nowrap">
+    <span>
+      {new Date(post.createdAt).toLocaleString("en-US", {
+        month: "short", day: "numeric",
+        hour: "numeric", minute: "2-digit", hour12: true,
+      })}
+    </span>
+    {post.isEdited && post.editedAt && (
+      <span className="text-[#71767b]">Edited {dayjs(post.editedAt).fromNow()}</span>
+    )}
+  </span>
+</div>
 
-      <span className={s.tweetTime}>
-        {formattedTime}
-      </span>
+{/* USERNAME */}
+<div onClick={() => navigate(`/profile/${post.userId?.username}`)}
+  className="text-[#71767b] text-[15px] truncate cursor-pointer hover:underline">
+  @{post.userId?.username}
+</div>
 
-    </div>
-
-    {/* USERNAME */}
-    <div
-      onClick={() =>
-        navigate(`/profile/${post.userId?.username}`)
-      }
-      className="
-        text-[#71767b]
-        text-[15px]
-        truncate
-        cursor-pointer
-        hover:underline
-      "
-    >
-      @{post.userId?.username}
-    </div>
-
+{/* time below username on small screens only */}
+<div className="sm:hidden flex items-center gap-2 text-[#71767b] text-[12.5px]">
+  <span>
+    {new Date(post.createdAt).toLocaleString("en-US", {
+      month: "short", day: "numeric",
+      hour: "numeric", minute: "2-digit", hour12: true,
+    })}
+  </span>
+  {post.isEdited && post.editedAt && (
+    <span>Edited {dayjs(post.editedAt).fromNow()}</span>
+  )}
+</div>
   </div>
 
           {/* MENU */}
@@ -345,7 +333,7 @@ function PostCard({ post }) {
                 {
                   showMenu && (
 
-                    <div className="absolute right-0 mt-2 w-[180px] overflow-hidden rounded-2xl border border-[#2f3336] bg-black shadow-xl z-50">
+                    <div className="absolute right-0 mt-2 w-[150px] overflow-hidden rounded-2xl border border-[#2f3336] bg-black shadow-xl z-50">
 
                       <button
                         onClick={(e) => {
@@ -353,41 +341,63 @@ function PostCard({ post }) {
                           setIsEditing(true);
                           setShowMenu(false);
                         }}
-                        className="w-full px-4 py-3 text-left text-white transition hover:bg-[#16181c]"
+                        className="w-full px-5 py-2 text-left text-white transition hover:bg-[#16181c]"
                       >
                         Edit Post
                       </button>
 
-                      <button
-                        onClick={handleDeletePost}
-                        className="w-full px-4 py-3 text-left text-red-500 transition hover:bg-[#16181c]"
-                      >
-                        Delete Post
-                      </button>
-
+                      {post.isDeleted ? (
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            await recoverPost(post._id);
+                            setShowMenu(false);
+                          }}
+                          className="
+                            w-full
+                            px-5
+                            py-2
+                            text-left
+                            text-[#1d9bf0]
+                            transition
+                            hover:bg-[#0a1a24]
+                          "
+                        >
+                          Unarchive
+                        </button>
+                      ) : (
+                        <button
+                          onClick={handleDeletePost}
+                          className="
+                            w-full
+                            px-5
+                            py-2
+                            text-left
+                            text-red-500
+                            transition
+                            hover:bg-[#16181c]
+                          "
+                        >
+                          Archive
+                        </button>
+                      )}
                     </div>
-
                   )
                 }
-
               </div>
-
             )
           }
-
         </div>
 
         {/* BODY */}
         {
           isEditing ? (
-
             <div
               className="mt-2"
               onClick={(e) =>
                 e.stopPropagation()
               }
             >
-
               <textarea
                 value={editText}
                 onChange={(e) =>
@@ -409,9 +419,7 @@ function PostCard({ post }) {
                   transition
                 "
               />
-
               <div className="flex justify-end gap-3 mt-3">
-
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -500,11 +508,12 @@ function PostCard({ post }) {
         {/* ACTIONS */}
         <div className="flex items-center gap-10 sm:gap-16 mt-3">
 
-          {/* COMMENT */}
+          {/* COMMENT */} 
           <button
             onClick={(e) => {
 
               e.stopPropagation();
+              if (post.isDeleted) return;
 
               if (showComments) {
 
@@ -540,7 +549,9 @@ function PostCard({ post }) {
 
               e.stopPropagation();
 
-              toggleLike(post._id);
+              if (!post.isDeleted) {
+                 toggleLike(post._id);
+    }
 
             }}
             className={`${s.tweetActionGroup} ${s.likeHover} ${isLiked ? s.likeActive : ""}`}
@@ -738,7 +749,7 @@ function PostCard({ post }) {
                           {/* HEADER */}
                           <div className="flex flex-col leading-tight">
 
-                            <div className="flex items-center gap-2 flex-wrap">
+                            <div className="flex items-center gap-2 min-w-0">
 
                               <span 
                               onClick={() => navigate(`/profile/${comment.userId?.username}`)}
@@ -824,7 +835,7 @@ function PostCard({ post }) {
                                   transition
                                 "
                               >
-                                Delete
+                                Archive
                               </button>
 
                             )

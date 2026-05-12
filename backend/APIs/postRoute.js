@@ -493,3 +493,167 @@ postRoute.get('/comments/:id', verifyToken, async (req, res, next) => {
         next(err);
     }
 });
+
+// PROFILE POSTS
+postRoute.get("/profile-posts/:username", verifyToken, async (req, res, next) => {
+    try {
+      const username = req.params.username.toLowerCase().trim();
+      const filter = req.query.filter || "all";
+      const profileUser = await UserModel.findOne({username});
+      if (!profileUser) {
+        return res.status(404).json({message: "User not found"});
+      }
+      if (profileUser.isBlocked || profileUser.isDeactivated) {
+        return res.status(403).json({message:"This account is unavailable"});
+      }
+      const isOwnProfile = profileUser._id.toString() === req.user.id.toString();
+      const query = { userId: profileUser._id, };
+      if (!isOwnProfile) {
+        query.isDeleted = false;
+        query.isPublished = true;
+      } else {
+        if (filter === "active") {
+          query.isDeleted = false;
+        } else if (filter === "deleted") {
+          query.isDeleted = true;
+        }
+      }
+      // FETCH POSTS
+      const posts = await PostModel.find(query).sort({createdAt: -1})
+          .populate("userId",
+            `username
+            firstName
+            lastName
+            profileImageUrl`
+          )
+          .populate("comments.userId",
+            `username
+            firstName
+            lastName
+            profileImageUrl`
+          )
+          .populate(
+            "likes.userId",
+            `username
+            firstName
+            lastName
+            profileImageUrl`
+        );
+      return res.status(200).json({
+        success: true, 
+        message:"Profile posts fetched", 
+        isOwnProfile, 
+        payload: posts
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// PROFILE REPLIES
+postRoute.get("/replies/:username", verifyToken, async (req, res, next) => {
+    try {
+      const username = req.params.username
+          .toLowerCase()
+          .trim();
+      const profileUser = await UserModel.findOne({username,});
+      if (!profileUser) {
+        return res.status(404).json({message: "User not found",});
+      }
+      if (
+        profileUser.isBlocked || profileUser.isDeactivated
+      ) {
+        return res.status(403).json({message:"This account is unavailable",});
+      }
+      const posts = await PostModel.find({"comments.userId":profileUser._id,
+          isDeleted: false,
+          isPublished: true,
+        }).sort({createdAt: -1,})
+          .populate(
+            "userId",
+            `
+            username
+            firstName
+            lastName
+            profileImageUrl
+            `
+          ).populate(
+            "comments.userId",
+            `
+            username
+            firstName
+            lastName
+            profileImageUrl
+            `
+          );
+      const replies = [];
+      posts.forEach((post) => {post.comments.forEach((comment) => {
+            if (
+              comment.userId?._id?.toString() === profileUser._id.toString()
+            ) {
+              replies.push({
+                _id: comment._id,
+                comment:comment.comment,
+                createdAt:comment.createdAt,
+                userId:comment.userId,
+                post,
+              });
+            }
+          }
+        );
+      });
+      replies.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      return res.status(200).json({ success: true, message:"Replies fetched successfully", payload: replies,});
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+//Liked POSTS
+postRoute.get("/liked-posts/:username", verifyToken, async (req, res, next) => {
+  try {
+    const username = req.params.username.toLowerCase().trim();
+    const profileUser = await UserModel.findOne({ username });
+
+    if (!profileUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (profileUser._id.toString() !== req.user.id.toString()) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    const posts = await PostModel.find({
+      likes: { $elemMatch: { userId: profileUser._id } },
+      isDeleted: false,
+      isPublished: true,
+    })
+      .populate("userId", "username firstName lastName profileImageUrl")
+      .populate("comments.userId", "username firstName lastName profileImageUrl")
+      .populate("likes.userId", "username firstName lastName profileImageUrl");
+
+    // Sort by when THIS user liked each post (the like entry's createdAt)
+    const sorted = posts.sort((a, b) => {
+      const likeA = a.likes.find(
+        (l) => l.userId?._id?.toString() === profileUser._id.toString() ||
+               l.userId?.toString() === profileUser._id.toString()
+      );
+      const likeB = b.likes.find(
+        (l) => l.userId?._id?.toString() === profileUser._id.toString() ||
+               l.userId?.toString() === profileUser._id.toString()
+      );
+      return new Date(likeB?.createdAt || 0) - new Date(likeA?.createdAt || 0);
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Liked posts fetched",
+      payload: sorted,
+    });
+
+  } catch (err) {
+    next(err);
+  }
+});

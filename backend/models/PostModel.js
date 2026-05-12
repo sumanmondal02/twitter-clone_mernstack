@@ -23,15 +23,14 @@ const likeSchema = new Schema({
         required: [true, "User ID is required"]
     }
 },{
-    _id: false,
     timestamps: true
 })
 
 const postSchema = new Schema({
     userId: {
-    type: Types.ObjectId,
-    ref: "User",
-    required: [true, "User ID is required"]
+        type: Types.ObjectId,
+        ref: "User",
+        required: [true, "User ID is required"]
     },
     description: {
         type: String,
@@ -42,6 +41,10 @@ const postSchema = new Schema({
     isDeleted:{
         type: Boolean,
         default: false
+    },
+    deletedAt: {
+        type: Date,
+        default: null
     },
     likes:{
         type: [likeSchema],
@@ -77,23 +80,19 @@ const postSchema = new Schema({
         type: Boolean,
         default: false
     },
-
     scheduledFor: {
         type: Date,
         default: null
     },
-
     isPublished: {
         type: Boolean,
         default: true
     },
-},
-{
+},{
     timestamps: true,
     versionKey: false,
     strict: "throw"
 });
 
 postSchema.path("createdAt").immutable(false);
-
 export const PostModel = model("Post", postSchema)

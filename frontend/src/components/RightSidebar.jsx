@@ -32,8 +32,8 @@ function RightSidebar() {
         {/* Dynamic users later */}
       </div>
 
-      {/* Footer */}
-      <div className="text-[#71767b] text-[13px] leading-5 px-3 py-4 flex flex-wrap gap-x-3 gap-y-1">
+      {/* Footer */}  
+      <div className="text-[#71767b] text-[13px] leading-5 px-3 pt-4 pb-1 flex flex-wrap gap-x-3 gap-y-1">
         <span className="hover:underline cursor-pointer">
           Terms
         </span>
@@ -46,18 +46,11 @@ function RightSidebar() {
           Cookies
         </span>
 
-        <span className="hover:underline cursor-pointer">
-          Accessibility
-        </span>
-
-        <span className="hover:underline cursor-pointer">
-          Ads info
-        </span>
-
-        <span>
-          © 2026 X Corp.
-        </span>
+        
       </div>
+      <span className="text-[#71767b] text-[12px] px-3">
+          © 2026 X Clone.
+        </span>
     </aside>
   );
 }
