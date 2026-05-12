@@ -349,33 +349,45 @@ userRoute.get("/followinglist", verifyToken, async (req, res, next) => {
 // Searches across username, firstName, lastName using case-insensitive regex
 // Usage: GET /user/search?q=john
 userRoute.get("/search", verifyToken, async (req, res, next) => {
-    try {
-        const { q } = req.query;
-        if (!q || q.trim() === "") {
-            return res
-                .status(400)
-                .json({ message: "Search query is required" });
-        }
-        const escaped = q.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        const users = await UserModel.find({
-            $or: [
-                { username: { $regex: escaped, $options: "i" } },
-                { firstName: { $regex: escaped, $options: "i" } },
-                { lastName: { $regex: escaped, $options: "i" } },
-            ],
-            isDeactivated: false,
-            isBlocked: false,
-            isAdmin: false, // exclude admins from search results
-        }).select("username firstName lastName profileImageUrl followerCount bio")
-          .limit(10); // limit results for performance
-
-        return res.status(200).json({
-            message: "Search results",
-            payload: users,
-        });
-    } catch (err) {
-        next(err);
+  try {
+    const { q } = req.query;
+    if (!q || q.trim() === "") {
+      return res.status(400).json({ message: "Search query is required" });
     }
+    const escaped = q.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    
+    const currentUser = await UserModel.findById(req.user.id).select("following");
+    const followingIds = currentUser.following.map((f) => f.userId.toString());
+
+    const users = await UserModel.find({
+      $or: [
+        { username: { $regex: escaped, $options: "i" } },
+        { firstName: { $regex: escaped, $options: "i" } },
+        { lastName: { $regex: escaped, $options: "i" } },
+      ],
+      isDeactivated: false,
+      isBlocked: false,
+      isAdmin: false,
+    })
+      .select("username firstName lastName profileImageUrl followerCount bio")
+      .limit(10);
+
+    const payload = users.map((u) => ({
+      _id: u._id,
+      username: u.username,
+      firstName: u.firstName,
+      lastName: u.lastName,
+      profileImageUrl: u.profileImageUrl,
+      followerCount: u.followerCount,
+      bio: u.bio,
+      isFollowing: followingIds.includes(u._id.toString()),
+      isOwnProfile: u._id.toString() === req.user.id.toString(),
+    }));
+
+    return res.status(200).json({ message: "Search results", payload });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // GET A USER'S POSTS BY USERNAME

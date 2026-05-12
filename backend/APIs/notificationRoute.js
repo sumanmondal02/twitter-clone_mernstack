@@ -48,29 +48,78 @@ notificationRoute.get('/unreadcount', verifyToken, async (req, res, next) => {
     }
 });
 
-// DELETE A SINGLE NOTIFICATION
-notificationRoute.delete('/:id', verifyToken, async (req, res, next) => {
+// MARK SINGLE NOTIFICATION AS READ
+notificationRoute.patch(
+  '/markread/:id',
+  verifyToken,
+  async (req, res, next) => {
+
     try {
-        const notification = await NotificationModel.findById(req.params.id);
-        if (!notification) {
-            return res.status(404).json({ message: "Notification not found" });
-        }
-        if (notification.toUserId.toString() !== req.user.id.toString()) {
-            return res.status(403).json({ message: "Not authorized" });
-        }
-        await NotificationModel.findByIdAndDelete(req.params.id);
-        return res.status(200).json({ message: "Notification deleted" });
+
+      const notification =
+        await NotificationModel.findById(
+          req.params.id
+        );
+
+      if (!notification) {
+
+        return res.status(404).json({
+          message:
+            "Notification not found"
+        });
+
+      }
+
+      if (
+        notification.toUserId.toString() !==
+        req.user.id.toString()
+      ) {
+
+        return res.status(403).json({
+          message: "Not authorized"
+        });
+
+      }
+
+      notification.isRead = true;
+
+      await notification.save();
+
+      return res.status(200).json({
+        message:
+          "Notification marked as read"
+      });
+
     } catch (err) {
-        next(err);
+
+      next(err);
+
     }
+
+  }
+);
+
+// CLEAR ALL — must be BEFORE /:id
+notificationRoute.delete('/clear', verifyToken, async (req, res, next) => {
+  try {
+    await NotificationModel.deleteMany({ toUserId: req.user.id });
+    return res.status(200).json({ message: "All notifications cleared" });
+  } catch (err) {
+    next(err);
+  }
 });
 
-// CLEAR ALL NOTIFICATIONS
-notificationRoute.delete('/clear', verifyToken, async (req, res, next) => {
-    try {
-        await NotificationModel.deleteMany({ toUserId: req.user.id });
-        return res.status(200).json({ message: "All notifications cleared" });
-    } catch (err) {
-        next(err);
+// DELETE SINGLE — after /clear
+notificationRoute.delete('/:id', verifyToken, async (req, res, next) => {
+  try {
+    const notification = await NotificationModel.findById(req.params.id);
+    if (!notification) return res.status(404).json({ message: "Notification not found" });
+    if (notification.toUserId.toString() !== req.user.id.toString()) {
+      return res.status(403).json({ message: "Not authorized" });
     }
+    await NotificationModel.findByIdAndDelete(req.params.id);
+    return res.status(200).json({ message: "Notification deleted" });
+  } catch (err) {
+    next(err);
+  }
 });

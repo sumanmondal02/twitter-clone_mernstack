@@ -2,7 +2,10 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "../stores/authStore";
+import NotificationPanel from "./NotificationPanel";
+import { useNotificationStore } from "../stores/notificationStore";
 import ComposerModal from "./ComposerModal";
+import SearchPanel from "./SearchPanel";
 import * as s from "../styles/common";
 
 import {
@@ -18,7 +21,6 @@ import {
   RiUserLine,
   RiUserFill,
   RiQuillPenFill,
-
 } from "react-icons/ri";
 
 import { GoHome, GoHomeFill } from "react-icons/go";
@@ -29,7 +31,16 @@ function LeftSidebar() {
   const { currentUser, logout } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
   const [showComposer, setShowComposer] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false); // NEW
   const menuRef = useRef(null);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const { unreadCount, fetchUnreadCount } = useNotificationStore();
+
+  useEffect(() => {
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000); // poll every 30s
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -38,118 +49,130 @@ function LeftSidebar() {
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const navItems = [
     {
       label: "Home",
-      icon: (
-      location.pathname === "/home"
-      ? <GoHomeFill className="text-[32px] ml-[-1px] text-[#e7e9ea]" />
-      : <GoHome className="text-[32px] ml-[-1px] text-[#e7e9ea]" />
-      ),
+      icon: location.pathname === "/home"
+        ? <GoHomeFill className="text-[32px] ml-[-1px] text-[#e7e9ea]" />
+        : <GoHome className="text-[32px] ml-[-1px] text-[#e7e9ea]" />,
       path: "/home",
+      onClick: () => navigate("/home"),
     },
     {
       label: "Search",
-      icon: <RiSearchLine className={s.navIcon} />,
-      path: "/search",
+      icon: searchOpen
+        ? <RiSearchFill className={s.navIcon} />
+        : <RiSearchLine className={s.navIcon} />,
+      path: null, // no navigation
+      onClick: () => setSearchOpen(true), // open panel instead
     },
     {
       label: "Notifications",
-      icon:
-        location.pathname === "/notifications"
-          ? <RiNotification3Fill className={s.navIcon} />
-          : <RiNotification3Line className={s.navIcon} />,
-      path: "/notifications",
+      icon: (
+        <div className="relative">
+          {notifOpen
+            ? <RiNotification3Fill className={s.navIcon} />
+            : <RiNotification3Line className={s.navIcon} />
+          }
+          {unreadCount > 0 && (
+            <div className="absolute -top-1 -right-1 w-[18px] h-[18px] bg-[#1d9bf0] rounded-full flex items-center justify-center text-white text-[10px] font-bold">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </div>
+          )}
+        </div>
+      ),
+      path: null,
+      onClick: () => setNotifOpen(true),
     },
     {
       label: "Messages",
-      icon:(
-        location.pathname === "/messages"
-          ? <RiChat1Fill className={s.navIcon} />
-          : <RiChat1Line className={s.navIcon} />
-      ),
+      icon: location.pathname === "/messages"
+        ? <RiChat1Fill className={s.navIcon} />
+        : <RiChat1Line className={s.navIcon} />,
       path: "/messages",
+      onClick: () => navigate("/messages"),
     },
     {
       label: "Bookmarks",
-      icon: (
-        location.pathname === "/bookmarks"
-          ? <RiBookmarkFill className={s.navIcon} />
-          : <RiBookmarkLine className={s.navIcon} />
-      ),
+      icon: location.pathname === "/bookmarks"
+        ? <RiBookmarkFill className={s.navIcon} />
+        : <RiBookmarkLine className={s.navIcon} />,
       path: "/bookmarks",
+      onClick: () => navigate("/bookmarks"),
     },
     {
       label: "Profile",
-      icon: (
-        location.pathname === `/profile/${currentUser?.username}`
-          ? <RiUserFill className={s.navIcon} />
-          : <RiUserLine className={s.navIcon} />
-      ),
+      icon: location.pathname === `/profile/${currentUser?.username}`
+        ? <RiUserFill className={s.navIcon} />
+        : <RiUserLine className={s.navIcon} />,
       path: `/profile/${currentUser?.username}`,
+      onClick: () => navigate(`/profile/${currentUser?.username}`),
     },
   ];
 
   return (
     <aside className={s.leftSidebar}>
       <div className={s.leftSidebarInner}>
-      {/* X Logo */}
-      <div className={s.sidebarXLogo} onClick={() => navigate("/home")}>
-        <RiTwitterXFill className="text-[48px]" />
-      </div>
-
-      {/* Nav Items */}
-      <nav className={s.sidebarNav}>
-        {navItems.map((item) => {
-          const active = location.pathname === item.path;
-
-          return (
-            <div
-              key={item.label}
-              className={active ? s.navItemActive : s.navItem}
-              onClick={() => navigate(item.path)}
-            >
-              {item.icon}
-
-              <span className={active ? s.navLabelActive : s.navLabel}>
-                {item.label}
-              </span>
-            </div>
-          );
-        })}
-      </nav>
-
-      {/* Post Button Desktop */}
-      <button className={s.postBtnWide} onClick={() => setShowComposer(true)}>
-        <div className="text-[20px]">
-          Post
+        {/* X Logo */}
+        <div className={s.sidebarXLogo} onClick={() => navigate("/home")}>
+          <RiTwitterXFill className="text-[48px]" />
         </div>
-      </button>
 
-      {/* Post Button Mobile */}
-      <button className={s.postBtnCircle} onClick={() => setShowComposer(true)}>
-        <RiQuillPenFill />
-      </button>
+        {/* Nav Items */}
+        <nav className={s.sidebarNav}>
+          {navItems.map((item) => {
+            const active = item.path && location.pathname === item.path;
+            return (
+              <div
+                key={item.label}
+                className={active ? s.navItemActive : s.navItem}
+                onClick={item.onClick}
+              >
+                {item.icon}
+                <span className={active ? s.navLabelActive : s.navLabel}>
+                  {item.label}
+                </span>
+              </div>
+            );
+          })}
+        </nav>
 
-      {
-        showComposer && createPortal(
-          <ComposerModal
-            closeModal={() =>
-              setShowComposer(false)
-            }
-          />, document.body
-        )
-      }
+        {/* Post Button Desktop */}
+        <button className={s.postBtnWide} onClick={() => setShowComposer(true)}>
+          <div className="text-[20px]">Post</div>
+        </button>
 
-      {/* Bottom User Card */}
-      <div ref={menuRef} className={s.sidebarUserCard} onClick={() => setShowMenu(!showMenu)}>
-        {
-          showMenu && (
+        {/* Post Button Mobile */}
+        <button className={s.postBtnCircle} onClick={() => setShowComposer(true)}>
+          <RiQuillPenFill />
+        </button>
+
+        {showComposer && createPortal(
+          <ComposerModal closeModal={() => setShowComposer(false)} />,
+          document.body
+        )}
+
+        {/* Search Panel via portal */}
+        {createPortal(
+          <SearchPanel isOpen={searchOpen} onClose={() => setSearchOpen(false)} />,
+          document.body
+        )}
+
+        {/* Notification Panel */}
+        {createPortal(
+          <NotificationPanel
+            isOpen={notifOpen}
+            onClose={() => setNotifOpen(false)}
+          />,
+          document.body
+        )}
+
+        {/* Bottom User Card */}
+        <div ref={menuRef} className={s.sidebarUserCard} onClick={() => setShowMenu(!showMenu)}>
+          {showMenu && (
             <div className={s.logoutPopup}>
               <button
                 className={s.logoutBtn}
@@ -165,26 +188,24 @@ function LeftSidebar() {
                 Logout
               </button>
             </div>
-          )
-        }
-        <img
-          src={
-            currentUser?.profileImageUrl || "https://upload.wikimedia.org/wikipedia/commons/0/03/Twitter_default_profile_400x400.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail_unscaled&_=20240121032759"
-          }
-          alt="profile"
-          className={s.avatarMd}
-        />
-
-        <div className="hidden xl:block">
-          <div className={s.sidebarUserName}>
-            {currentUser?.firstName} {currentUser?.lastName}
-          </div>
-
-          <div className={s.sidebarUserHandle}>
-            @{currentUser?.username}
+          )}
+          <img
+            src={
+              currentUser?.profileImageUrl ||
+              "https://upload.wikimedia.org/wikipedia/commons/0/03/Twitter_default_profile_400x400.png"
+            }
+            alt="profile"
+            className={s.avatarMd}
+          />
+          <div className="hidden xl:block">
+            <div className={s.sidebarUserName}>
+              {currentUser?.firstName} {currentUser?.lastName}
+            </div>
+            <div className={s.sidebarUserHandle}>
+              @{currentUser?.username}
+            </div>
           </div>
         </div>
-      </div>
       </div>
     </aside>
   );
