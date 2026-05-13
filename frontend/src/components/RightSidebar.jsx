@@ -20,7 +20,7 @@ function RightSidebar() {
       <div className={s.widgetCard}>
         <h2 className={s.widgetCardTitle}>Trending</h2>
         {trends.length === 0 ? (
-          <div className="text-[#71767b] text-[13px] px-3 pb-3">No trending hashtags yet</div>
+          <div className="text-[#71767b] text-[13px] px-5 pb-3">No trending hashtags yet</div>
         ) : (
           trends.map(({ tag, count }) => (
             <div
@@ -39,9 +39,9 @@ function RightSidebar() {
         <div className={s.widgetCard}>
           <h2 className={s.widgetCardTitle}>Who to follow</h2>
           {isLoading ? (
-            <div className="text-[#71767b] text-[13px] px-3 pb-3">Loading...</div>
+            <div className="text-[#71767b] text-[13px] px-5 pb-3">Loading...</div>
           ) : suggestions.length === 0 ? (
-            <div className="text-[#71767b] text-[13px] px-3 pb-3">No suggestions</div>
+            <div className="text-[#71767b] text-[13px] px-5 pb-3">No suggestions</div>
           ) : (
             suggestions.slice(0, 3).map((user) => (
               <div key={user._id} className="flex items-center justify-between gap-3 px-3 py-2 hover:bg-[#16181c] transition rounded-lg">

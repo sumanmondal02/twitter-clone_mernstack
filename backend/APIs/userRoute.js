@@ -160,8 +160,8 @@ userRoute.put("/deactivate", verifyToken, async (req, res, next) => {
         await UserModel.findByIdAndUpdate(req.user.id, { isDeactivated: true });
         res.clearCookie("token", {
             httpOnly: true,
-            secure: false, // set to true in production with HTTPS
-            sameSite: "lax"
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         });
         return res.status(200).json({ message: "Account deactivated successfully" });
     } catch (err) {

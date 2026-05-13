@@ -121,6 +121,9 @@ export const topBarSubtitle     = "text-[#71767b] text-[13px]"; // e.g. "1,234 p
 export const topBarBackBtn      = "w-9 h-9 flex items-center justify-center rounded-full hover:bg-[#181818] transition-colors cursor-pointer text-[#e7e9ea] text-[18px] flex-shrink-0";
 export const topBarIconBtn      = "w-9 h-9 flex items-center justify-center rounded-full hover:bg-[#181818] transition-colors cursor-pointer text-[#e7e9ea] text-[18px] ml-auto";
 
+export const iconBtn            = "w-9 h-9 rounded-full flex items-center justify-center transition";
+export const iconBtnHover       = "hover:bg-[#16181c] text-[#71767b] hover:text-white";
+
 // ─── FEED TABS (For you / Following / All / Mentions etc.) ───────────────────
 export const tabBar             = "sticky top-0 z-20 backdrop-blur-md bg-black/80 border-b border-[#2f3336] flex";
 export const tab                = "flex-1 h-[53px] flex items-center justify-center text-[#71767b] font-bold hover:bg-[#181818] transition-colors cursor-pointer relative";
