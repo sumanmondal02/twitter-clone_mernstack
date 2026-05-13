@@ -92,6 +92,7 @@ export const useAuth = create((set) => ({
       set({ isCheckingAuth: true });
       const res = await axios.get(`${API}/auth/check-auth`, opts);
       const user = normalize(res.data.payload);
+      localStorage.setItem("currentUser", JSON.stringify(user));
       set({
         currentUser: user,
         isAuthenticated: true,
@@ -111,7 +112,6 @@ export const useAuth = create((set) => ({
   updateCurrentUser: (updatedUser) => {
 
   const normalizedUser = normalize(updatedUser);
-
   localStorage.setItem(
     "currentUser",
     JSON.stringify(normalizedUser)

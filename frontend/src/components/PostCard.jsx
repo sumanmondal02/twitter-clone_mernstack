@@ -10,16 +10,16 @@ import {
 import * as s from "../styles/common";
 import { useNavigate } from "react-router-dom";
 import ImageLightbox from "./ImageLightbox";
-
+import axios from "axios";
+import toast from "react-hot-toast";
 import { useAuth } from "../stores/authStore";
 import { usePost } from "../stores/postStore";
-
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 
 dayjs.extend(relativeTime);
 
-function PostCard({ post }) {
+function PostCard({ post, isProfileView, isAdmin = false }) {
 
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -309,84 +309,53 @@ function PostCard({ post }) {
   </div>
 
           {/* MENU */}
-          {
-            (
-              post.userId?._id === currentUser?.id ||
-              post.userId === currentUser?.id
-            ) && (
-
-              <div
-                ref={menuRef}
-                className="relative"
-              >
-
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowMenu((prev) => !prev);
-                  }}
-                  className={`${s.iconBtn} ${s.iconBtnHover}`}
-                >
-                  <RiMoreFill />
-                </button>
-
-                {
-                  showMenu && (
-
-                    <div className="absolute right-0 mt-2 w-[150px] overflow-hidden rounded-2xl border border-[#2f3336] bg-black shadow-xl z-50">
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsEditing(true);
-                          setShowMenu(false);
-                        }}
-                        className="w-full px-5 py-2 text-left text-white transition hover:bg-[#16181c]"
-                      >
+          {(post.userId?._id === currentUser?.id || post.userId === currentUser?.id || currentUser?.isAdmin) && (
+            <div ref={menuRef} className="relative">
+              <button onClick={(e) => { e.stopPropagation(); setShowMenu(p => !p); }} className={`${s.iconBtn} ${s.iconBtnHover}`}>
+                <RiMoreFill />
+              </button>
+              {showMenu && (
+                <div className="absolute right-0 mt-2 w-[160px] overflow-hidden rounded-2xl border border-[#2f3336] bg-black shadow-xl z-50">
+                  {currentUser?.isAdmin ? (
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        if (!window.confirm("Permanently delete this post?")) return;
+                        try {
+                          await axios.delete(`${import.meta.env.VITE_URL}/admin-api/posts/${post._id}`, { withCredentials: true });
+                          // remove from store
+                          usePost.setState(state => ({
+                            posts: state.posts.filter(p => p._id !== post._id),
+                            profilePosts: state.profilePosts.filter(p => p._id !== post._id),
+                          }));
+                          toast.success("Post permanently deleted");
+                        } catch (err) { toast.error("Failed"); }
+                        setShowMenu(false);
+                      }}
+                      className="w-full px-5 py-2 text-left text-red-500 transition hover:bg-[#16181c]"
+                    >
+                      Hard Delete
+                    </button>
+                  ) : (
+                    <>
+                      <button onClick={(e) => { e.stopPropagation(); setIsEditing(true); setShowMenu(false); }} className="w-full px-5 py-2 text-left text-white transition hover:bg-[#16181c]">
                         Edit Post
                       </button>
-
                       {post.isDeleted ? (
-                        <button
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            await recoverPost(post._id);
-                            setShowMenu(false);
-                          }}
-                          className="
-                            w-full
-                            px-5
-                            py-2
-                            text-left
-                            text-[#1d9bf0]
-                            transition
-                            hover:bg-[#0a1a24]
-                          "
-                        >
+                        <button onClick={async (e) => { e.stopPropagation(); await recoverPost(post._id); setShowMenu(false); }} className="w-full px-5 py-2 text-left text-[#1d9bf0] transition hover:bg-[#0a1a24]">
                           Unarchive
                         </button>
                       ) : (
-                        <button
-                          onClick={handleDeletePost}
-                          className="
-                            w-full
-                            px-5
-                            py-2
-                            text-left
-                            text-red-500
-                            transition
-                            hover:bg-[#16181c]
-                          "
-                        >
+                        <button onClick={handleDeletePost} className="w-full px-5 py-2 text-left text-red-500 transition hover:bg-[#16181c]">
                           Archive
                         </button>
                       )}
-                    </div>
-                  )
-                }
-              </div>
-            )
-          }
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* BODY */}
@@ -506,76 +475,86 @@ function PostCard({ post }) {
         }
 
         {/* ACTIONS */}
-        <div className="flex items-center gap-10 sm:gap-16 mt-3">
+        {!isAdmin && (
+          <div className="flex items-center gap-10 sm:gap-16 mt-3">
 
-          {/* COMMENT */} 
-          <button
-            onClick={(e) => {
+            {/* COMMENT */} 
+            <button
+              onClick={(e) => {
 
-              e.stopPropagation();
-              if (post.isDeleted) return;
+                e.stopPropagation();
+                if (post.isDeleted) return;
 
-              if (showComments) {
+                if (showComments) {
 
-                setActiveCommentPostId(null);
+                  setActiveCommentPostId(null);
 
-              } else {
+                } else {
 
-                setActiveCommentPostId(post._id);
+                  setActiveCommentPostId(post._id);
 
-              }
+                }
 
-            }}
-            className={`comment-trigger ${s.tweetActionGroup} ${showComments ? s.commentActive : s.commentHover}`}
-          >
+              }}
+              className={`comment-trigger ${s.tweetActionGroup} ${showComments ? s.commentActive : s.commentHover}`}
+            >
 
-            <div className={s.tweetActionIconWrap}>
-              {
-                showComments
-                  ? <RiChat1Fill />
-                  : <RiChat1Line />
-              }
-            </div>
+              <div className={s.tweetActionIconWrap}>
+                {
+                  showComments
+                    ? <RiChat1Fill />
+                    : <RiChat1Line />
+                }
+              </div>
 
-            <span className={s.tweetActionCount}>
-              {post.commentCount || 0}
-            </span>
+              <span className={s.tweetActionCount}>
+                {post.commentCount || 0}
+              </span>
 
-          </button>
+            </button>
 
-          {/* LIKE */}
-          <button
-            onClick={(e) => {
+            {/* LIKE */}
+            <button
+              onClick={(e) => {
 
-              e.stopPropagation();
+                e.stopPropagation();
 
-              if (!post.isDeleted) {
-                 toggleLike(post._id);
-    }
+                if (!post.isDeleted) {
+                  toggleLike(post._id);
+      }
 
-            }}
-            className={`${s.tweetActionGroup} ${s.likeHover} ${isLiked ? s.likeActive : ""}`}
-          >
+              }}
+              className={`${s.tweetActionGroup} ${s.likeHover} ${isLiked ? s.likeActive : ""}`}
+            >
 
-            <div className={s.tweetActionIconWrap}>
-              {
-                isLiked
-                  ? <RiHeartFill />
-                  : <RiHeartLine />
-              }
-            </div>
+              <div className={s.tweetActionIconWrap}>
+                {
+                  isLiked
+                    ? <RiHeartFill />
+                    : <RiHeartLine />
+                }
+              </div>
 
-            <span className={s.tweetActionCount}>
-              {post.likeCount || 0}
-            </span>
+              <span className={s.tweetActionCount}>
+                {post.likeCount || 0}
+              </span>
 
-          </button>
+            </button>
 
-        </div>
+          </div>
+        )}
+
+        {isAdmin && (
+          <div className="flex items-center gap-6 mt-3 text-[#71767b] text-[13px]">
+            <span>♡ {post.likeCount || 0}</span>
+            <span>· {post.commentCount || 0} replies</span>
+            {post.isDeleted && <span className="text-red-400 text-[11px] border border-red-900 px-2 py-0.5 rounded-full">Archived</span>}
+            {!post.isPublished && <span className="text-yellow-500 text-[11px] border border-yellow-900 px-2 py-0.5 rounded-full">Scheduled</span>}
+          </div>
+        )}
 
         {/* COMMENTS */}
-        {
-          showComments && (
+        {showComments && !isAdmin && (
 
             <div
               ref={commentsRef}

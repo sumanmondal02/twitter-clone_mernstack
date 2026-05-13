@@ -100,7 +100,8 @@ commonRoute.post("/login", async (req, res, next) => {
             email: email,
             firstName: firstName,
             lastName: lastName,
-            profileImageUrl: profileImageUrl
+            profileImageUrl: profileImageUrl,
+            isAdmin: isAdmin
         }, process.env.SECRET_KEY, { expiresIn: "1h" });
 
         res.cookie("token", token, {

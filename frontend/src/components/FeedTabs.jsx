@@ -1,6 +1,7 @@
 import * as s from "../styles/common";
 import { useEffect } from "react";
 import { usePost } from "../stores/postStore";
+import { useAuth } from "../stores/authStore";
 
 function FeedTabs() {
 
@@ -11,6 +12,9 @@ function FeedTabs() {
     fetchFollowingFeed,
     resetFeed,
   } = usePost();
+
+  const { currentUser } = useAuth();
+  const isAdmin = currentUser?.isAdmin;
 
   useEffect(() => { resetFeed();
     if (feedType === "explore") {
@@ -47,27 +51,13 @@ function FeedTabs() {
       </button>
 
       {/* FOLLOWING */}
-      <button
-        onClick={() => {
-          resetFeed();
-          setFeedType("following");
-        }}
-        className={
-          feedType === "following"
-            ? s.tabActive
-            : s.tab
-        }
-      >
-        Following
-
-        {
-          feedType === "following" && (
-            <div
-              className={s.tabIndicator}
-            />
-          )
-        }
-      </button>
+      {!isAdmin && (
+        <button onClick={() => { resetFeed(); setFeedType("following"); }} 
+        className={feedType === "following" ? s.tabActive : s.tab}>
+          Following
+          {feedType === "following" && <div className={s.tabIndicator} />}
+        </button>
+      )}
 
     </div>
   );

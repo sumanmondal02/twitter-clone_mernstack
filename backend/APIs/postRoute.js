@@ -518,8 +518,13 @@ postRoute.get("/profile-posts/:username", verifyToken, async (req, res, next) =>
           query.isDeleted = true;
         }
       }
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+      const total = await PostModel.countDocuments(query);
+
       // FETCH POSTS
-      const posts = await PostModel.find(query).sort({createdAt: -1})
+      const posts = await PostModel.find(query).sort({createdAt: -1}).skip(skip).limit(limit)
           .populate("userId",
             `username
             firstName
@@ -543,7 +548,8 @@ postRoute.get("/profile-posts/:username", verifyToken, async (req, res, next) =>
         success: true, 
         message:"Profile posts fetched", 
         isOwnProfile, 
-        payload: posts
+        payload: posts,
+        hasMore: skip + posts.length < total,
       });
     } catch (err) {
       next(err);
@@ -653,6 +659,75 @@ postRoute.get("/liked-posts/:username", verifyToken, async (req, res, next) => {
       payload: sorted,
     });
 
+  } catch (err) {
+    next(err);
+  }
+});
+
+// HASHTAG FEED
+postRoute.get("/hashtag/:tag", verifyToken, async (req, res, next) => {
+  try {
+    const tag = decodeURIComponent(req.params.tag);
+    const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(`#${escaped}`, "i");
+
+    const unavailableUsers = await UserModel.find({
+      $or: [{ isBlocked: true }, { isDeactivated: true }]
+    }).select("_id");
+    const unavailableIds = unavailableUsers.map(u => u._id);
+
+    const posts = await PostModel.find({
+      description: { $regex: regex },
+      isDeleted: false,
+      isPublished: true,
+      userId: { $nin: unavailableIds },
+    })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .populate("userId", "username firstName lastName profileImageUrl")
+      .populate("comments.userId", "username firstName lastName profileImageUrl")
+      .populate("likes.userId", "username firstName lastName profileImageUrl");
+
+    return res.status(200).json({
+      success: true,
+      message: "Hashtag posts fetched",
+      payload: posts,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// TRENDING HASHTAGS
+postRoute.get("/trending", verifyToken, async (req, res, next) => {
+  try {
+    const unavailableUsers = await UserModel.find({
+      $or: [{ isBlocked: true }, { isDeactivated: true }]
+    }).select("_id");
+    const unavailableIds = unavailableUsers.map(u => u._id);
+
+    const posts = await PostModel.find({
+      isDeleted: false,
+      isPublished: true,
+      userId: { $nin: unavailableIds },
+      description: { $regex: /#\w+/, $options: "i" }
+    }).select("description").limit(500);
+
+    const counts = {};
+    posts.forEach((post) => {
+      const tags = post.description.match(/#\w+/gi) || [];
+      tags.forEach((tag) => {
+        const t = tag.toLowerCase();
+        counts[t] = (counts[t] || 0) + 1;
+      });
+    });
+
+    const trending = Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([tag, count]) => ({ tag, count }));
+
+    return res.status(200).json({ success: true, payload: trending });
   } catch (err) {
     next(err);
   }

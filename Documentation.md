@@ -220,7 +220,6 @@ A full-stack Twitter/X clone built from scratch as a learning project. The goal 
 - **Repost / Quote Tweet** — share another user's post with optional comment
 - **Bookmark / Save Posts** — save posts to read later
 - **Video support** — extend Cloudinary upload to support video mediaType
-- **Forgot Password** — email-based password reset flow
 - **Refresh Token** — replace 1h JWT expiry with proper refresh token mechanism
 - **Email Verification** — verify email on registration before allowing login
 - **Public / Private Accoun** - to create private accounts

@@ -15,6 +15,24 @@ adminRoute.get('/users', verifyToken, verifyAdmin, async (req, res, next) => {
     }
 })
 
+// Search users (admin)
+adminRoute.get('/users/search', verifyToken, verifyAdmin, async (req, res, next) => {
+    try {
+        const { q } = req.query;
+        if (!q?.trim()) return res.status(400).json({ message: "Query required" });
+        const escaped = q.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const users = await UserModel.find({
+            $or: [
+                { username: { $regex: escaped, $options: "i" } },
+                { firstName: { $regex: escaped, $options: "i" } },
+                { lastName: { $regex: escaped, $options: "i" } },
+            ],
+            isAdmin: false
+        }).select("-password -followers -following").limit(20);
+        res.status(200).json({ message: "Search results", payload: users });
+    } catch (err) { next(err); }
+});
+
 //  Block user
 adminRoute.patch('/users/:id/block', verifyToken, verifyAdmin, async (req, res, next) => {
     try {
@@ -48,19 +66,13 @@ adminRoute.patch('/users/:id/block', verifyToken, verifyAdmin, async (req, res, 
 adminRoute.patch('/users/:id/unblock', verifyToken, verifyAdmin, async (req, res, next) => {
     try {
         const user = await UserModel.findById(req.params.id)
-        if (!user) {
-            return res.status(404).json({ message: "User not found" })
-        }
-        if (!user.isBlocked) {
-            return res.status(400).json({ message: "User already unblocked" });
-        }
-        user.isBlocked = false
-        const updatedUser = await user.save()
+        if (!user) return res.status(404).json({ message: "User not found" })
+        if (!user.isBlocked) return res.status(400).json({ message: "User already unblocked" });
+        const updatedUser = await UserModel.findByIdAndUpdate(req.params.id, { isBlocked: false }, { new: true })
+            .select("-password -followers -following");
         res.status(200).json({ message: "User unblocked successfully", payload: updatedUser })
-    } catch (err) {
-        next(err)
-    }
-})
+    } catch (err) { next(err) }
+});
 
 // View ALL posts including soft-deleted
 adminRoute.get('/posts', verifyToken, verifyAdmin, async (req, res, next) => {
@@ -85,15 +97,17 @@ adminRoute.delete('/posts/:id', verifyToken, verifyAdmin, async (req, res, next)
 adminRoute.get('/stats', verifyToken, verifyAdmin, async (req, res, next) => {
     try {
         const [totalUsers, blockedUsers, deactivatedUsers, totalPosts, deletedPosts] = await Promise.all([
-            UserModel.countDocuments(),
-            UserModel.countDocuments({ isBlocked: true }),
-            UserModel.countDocuments({ isDeactivated: true }),
+            UserModel.countDocuments({ isAdmin: false }),
+            UserModel.countDocuments({ isBlocked: true, isAdmin: false }),
+            UserModel.countDocuments({ isDeactivated: true, isAdmin: false }),
             PostModel.countDocuments(),
             PostModel.countDocuments({ isDeleted: true }),
         ]);
+        const activeUsers = totalUsers - blockedUsers - deactivatedUsers;
+        
         res.status(200).json({
             message: "Dashboard stats",
-            payload: { totalUsers, blockedUsers, deactivatedUsers, totalPosts, deletedPosts }
+            payload: { totalUsers, blockedUsers, deactivatedUsers, totalPosts, deletedPosts, activeUsers }
         });
     } catch (err) { next(err); }
 });

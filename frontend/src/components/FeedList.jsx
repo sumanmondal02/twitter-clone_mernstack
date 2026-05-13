@@ -4,6 +4,7 @@ import {
 } from "react";
 
 import PostCard from "./PostCard";
+import { useAuth } from "../stores/authStore";
 
 import { usePost }
 from "../stores/postStore";
@@ -23,8 +24,10 @@ function FeedList() {
 
   } = usePost();
 
-  const observerRef =
-    useRef(null);
+  const observerRef = useRef(null);
+
+  const { currentUser } = useAuth();
+  const isAdmin = currentUser?.isAdmin;
 
   // =========================
   // INFINITE SCROLL
@@ -182,10 +185,7 @@ function FeedList() {
       {
         posts.filter((post) => post.userId).map((post) => (
 
-          <PostCard
-            key={post._id}
-            post={post}
-          />
+          <PostCard key={post._id} post={post} isAdmin={isAdmin} />
 
         ))
       }

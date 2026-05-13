@@ -26,6 +26,10 @@ userRoute.get("/profile/:username", verifyToken, async (req, res, next) => {
         else if (user.isBlocked) {
             return res.status(403).json({ message: "This account is blocked" });
         }
+        // ADD after the isBlocked check:
+        if (user.isAdmin && !req.user.isAdmin) {
+        return res.status(403).json({ message: "This account is not available" });
+        }
         const isOwnProfile = user._id.toString() === req.user.id.toString();
         // Check if the logged-in user follows this profile
         // const currentUser = await UserModel.findById(req.user.id).select("following");
@@ -141,6 +145,16 @@ userRoute.put("/deactivate", verifyToken, async (req, res, next) => {
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
+        if (user.isDeactivated) {
+            return res.status(400).json({ message: "Account already deactivated" });
+        }
+        if (user.isBlocked) {
+            return res.status(403).json({ message: "This account is blocked" });
+        }
+        // ADD after the isBlocked check:
+        if (user.isAdmin) {
+        return res.status(403).json({ message: "This account cannot be deactivated" });
+        }
         const isMatch = await compare(password, user.password);
         if (!isMatch) return res.status(401).json({ message: "Invalid password" });
         await UserModel.findByIdAndUpdate(req.user.id, { isDeactivated: true });
@@ -174,8 +188,10 @@ userRoute.post("/follow/:id", verifyToken, async (req, res, next) => {
         if (!targetUser) {
             return res.status(404).json({ message: "User not found" });
         }
-
-        if (targetUser.isBlocked || targetUser.isDeactivated) {
+        if (targetUser.isAdmin) {
+            return res.status(403).json({ message: "This account is not accessible" });
+        }
+        if (targetUser.isBlocked || targetUser.isDeactivated || targetUser.isAdmin) {
             return res
                 .status(403)
                 .json({ message: "This account is unavailable" });
@@ -478,7 +494,8 @@ userRoute.get("/suggestions", verifyToken, async (req, res, next) => {
         const suggestions = await UserModel.find({
             _id: { $nin: followingIds },
             isBlocked: false,
-            isDeactivated: false
+            isDeactivated: false,
+            isAdmin: false
         })
         .select("username firstName lastName profileImageUrl followerCount bio")
         .limit(10);
@@ -501,7 +518,8 @@ userRoute.get("/followers/:username", verifyToken, async (req, res, next) => {
       const followerIds = profileUser.followers.map((f) => f.userId);
       const followers = await UserModel.find({_id: {$in: followerIds},
           isBlocked: false,
-          isDeactivated: false
+          isDeactivated: false,
+          isAdmin: false
         })
         .select(`
           firstName
@@ -551,7 +569,8 @@ userRoute.get("/following/:username", verifyToken, async (req, res, next) => {
             $in: followingIds
           },
         isBlocked: false,
-        isDeactivated: false
+        isDeactivated: false,
+        isAdmin: false
         })
         .select(`
           firstName

@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import EditProfileModal from "../components/EditProfileModal";
 import dayjs from "dayjs";
+import axios from "axios";
+import toast from "react-hot-toast";
 import { useAuth } from "../stores/authStore";
 import { useProfile } from "../stores/profileStore";
 import FollowModal from "../components/FollowModal";
@@ -210,14 +212,13 @@ const getLivePost = (post) => {
                 >
                   Edit profile
                 </button>
+              ) : currentUser?.isAdmin ? (
+                <AdminBlockButton userId={profileUser._id} isBlocked={profileUser.isBlocked} />
               ) : (
                 <button
                   onClick={() => {
-                    if (isFollowing) {
-                      unfollowUser(profileUser._id);
-                    } else {
-                      followUser(profileUser._id);
-                    }
+                    if (isFollowing) { unfollowUser(profileUser._id); }
+                    else { followUser(profileUser._id); }
                   }}
                   className={`px-5 h-[36px] rounded-full font-bold transition ${
                     isFollowing
@@ -325,7 +326,7 @@ const getLivePost = (post) => {
                 ) : (
                   <div>
                     {posts.map((post) => (
-                      <PostCard key={post._id} post={post} isProfileView={true} />
+                      <PostCard key={post._id} post={post} isProfileView={true} isAdmin={currentUser?.isAdmin} />
                     ))}
                     <div ref={observerRef} className="h-10" />
                     {isFetchingMoreProfilePosts && <ProfilePostsSkeleton />}
@@ -345,7 +346,7 @@ const getLivePost = (post) => {
                   groupedRepliesList.map(({ post, replies: postReplies }) => (
                     <div key={post._id} className="border-b border-[#2f3336]">
                       {/* ORIGINAL POST */}
-                      <PostCard post={getLivePost(post)} />
+                      <PostCard post={getLivePost(post)} isAdmin={currentUser?.isAdmin} />
                       {/* ALL USER REPLIES TO THIS POST GROUPED */}
                       <div className="border-l-2 border-[#2f3336] ml-[52px] mr-4">
                         {postReplies.map((reply) => (
@@ -409,7 +410,7 @@ const getLivePost = (post) => {
                   <div className="py-16 text-center text-[#71767b]">No liked posts yet</div>
                 ) : (
                   likedPosts.map((post) => (
-                    <PostCard key={post._id} post={post} />
+                    <PostCard key={post._id} post={post} isAdmin={currentUser?.isAdmin} />
                   ))
                 )}
               </div>
@@ -446,6 +447,38 @@ const getLivePost = (post) => {
         />
       )}
     </>
+  );
+}
+
+function AdminBlockButton({ userId, isBlocked: initialBlocked }) {
+  const [isBlocked, setIsBlocked] = useState(initialBlocked);
+  const [loading, setLoading] = useState(false);
+  const API = import.meta.env.VITE_URL;
+
+  const toggle = async () => {
+    setLoading(true);
+    try {
+      const endpoint = isBlocked ? "unblock" : "block";
+      await axios.patch(`${API}/admin-api/users/${userId}/${endpoint}`, {}, { withCredentials: true });
+      setIsBlocked(!isBlocked);
+      toast.success(isBlocked ? "User unblocked" : "User blocked");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed");
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <button
+      onClick={toggle}
+      disabled={loading}
+      className={`px-5 h-[36px] rounded-full font-bold transition disabled:opacity-50 ${
+        isBlocked
+          ? "border border-[#536471] text-white hover:border-[#1d9bf0] hover:text-[#1d9bf0]"
+          : "border border-red-800 text-red-500 hover:bg-red-950"
+      }`}
+    >
+      {loading ? "..." : isBlocked ? "Unblock" : "Block"}
+    </button>
   );
 }
 

@@ -16,6 +16,8 @@ import Bookmarks from "./pages/Bookmarks";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Cookies from "./pages/Cookies";
+import HashtagFeed from "./pages/HashtagFeed";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function CatchAll() {
   const { isAuthenticated, isCheckingAuth } = useAuth();
@@ -68,7 +70,7 @@ const routerObj = createBrowserRouter([
   {
     path: "/messages",
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute adminForbidden={true}>
         <Messages />
       </ProtectedRoute>
     )
@@ -76,7 +78,7 @@ const routerObj = createBrowserRouter([
   {
     path: "/bookmarks",
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute adminForbidden={true}>
         <Bookmarks />
       </ProtectedRoute>
     )
@@ -96,7 +98,23 @@ const routerObj = createBrowserRouter([
   {
     path: "*",
     element: <CatchAll />
-  }
+  },
+  {
+    path: "/explore/:tag",
+    element: (
+      <ProtectedRoute>
+        <HashtagFeed />
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/admin",
+    element: (
+      <ProtectedRoute adminOnly={true}>
+        <AdminDashboard />
+      </ProtectedRoute>
+    )
+  },
 ]);
 
 function App() {
