@@ -4,19 +4,13 @@ import { usePost } from "../stores/postStore";
 import { useAuth } from "../stores/authStore";
 
 function FeedTabs() {
-
-  const {
-    feedType,
-    setFeedType,
-    fetchExploreFeed,
-    fetchFollowingFeed,
-    resetFeed,
-  } = usePost();
-
+  const { feedType, setFeedType, fetchExploreFeed, fetchFollowingFeed, resetFeed } = usePost();
   const { currentUser } = useAuth();
   const isAdmin = currentUser?.isAdmin;
 
-  useEffect(() => { resetFeed();
+  // Fetch feed when type changes
+  useEffect(() => {
+    resetFeed();
     if (feedType === "explore") {
       fetchExploreFeed();
     } else {
@@ -26,39 +20,31 @@ function FeedTabs() {
 
   return (
     <div className={s.tabBar}>
-
-      {/* FOR YOU */}
+      {/* For You Tab */}
       <button
         onClick={() => {
           resetFeed();
           setFeedType("explore");
         }}
-        className={
-          feedType === "explore"
-            ? s.tabActive
-            : s.tab
-        }
+        className={feedType === "explore" ? s.tabActive : s.tab}
       >
         For you
-
-        {
-          feedType === "explore" && (
-            <div
-              className={s.tabIndicator}
-            />
-          )
-        }
+        {feedType === "explore" && <div className={s.tabIndicator} />}
       </button>
 
-      {/* FOLLOWING */}
+      {/* Following Tab */}
       {!isAdmin && (
-        <button onClick={() => { resetFeed(); setFeedType("following"); }} 
-        className={feedType === "following" ? s.tabActive : s.tab}>
+        <button
+          onClick={() => {
+            resetFeed();
+            setFeedType("following");
+          }}
+          className={feedType === "following" ? s.tabActive : s.tab}
+        >
           Following
           {feedType === "following" && <div className={s.tabIndicator} />}
         </button>
       )}
-
     </div>
   );
 }

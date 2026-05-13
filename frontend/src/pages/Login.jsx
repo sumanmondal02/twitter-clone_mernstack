@@ -261,71 +261,61 @@ const [isReactivating, setIsReactivating] =
                 <div className={`${s.errorAlert} mt-3`}>{localError}</div>
               )}
               {
-  showReactivate && (
+                showReactivate && (
+                  <div
+                    className="
+                      mt-4
+                      border
+                      border-[#2f3336]
+                      rounded-2xl
+                      p-4
+                      bg-[#0f0f0f]
+                    ">
+                    <h3
+                      className="
+                        text-white
+                        font-bold
+                        text-[17px]
+                        mb-2
+                      ">
+                      Account Deactivated
+                    </h3>
 
-    <div
-      className="
-        mt-4
-        border
-        border-[#2f3336]
-        rounded-2xl
-        p-4
-        bg-[#0f0f0f]
-      "
-    >
+                    <p
+                      className="
+                        text-[#71767b]
+                        text-sm
+                        leading-relaxed
+                        mb-4
+                      ">
+                      Your account is currently
+                      deactivated. Reactivate it
+                      to continue using X.
+                    </p>
 
-      <h3
-        className="
-          text-white
-          font-bold
-          text-[17px]
-          mb-2
-        "
-      >
-        Account Deactivated
-      </h3>
-
-      <p
-        className="
-          text-[#71767b]
-          text-sm
-          leading-relaxed
-          mb-4
-        "
-      >
-        Your account is currently
-        deactivated. Reactivate it
-        to continue using X.
-      </p>
-
-      <button
-        type="button"
-        onClick={handleReactivate}
-        disabled={isReactivating}
-        className="
-          w-full
-          h-[46px]
-          rounded-full
-          bg-white
-          text-black
-          font-bold
-          hover:bg-[#d7dbdc]
-          transition
-        "
-      >
-
-        {
-          isReactivating
-            ? "Reactivating..."
-            : "Reactivate Account"
-        }
-
-      </button>
-
-    </div>
-
-  )
-}
+                    <button
+                      type="button"
+                      onClick={handleReactivate}
+                      disabled={isReactivating}
+                      className="
+                        w-full
+                        h-[46px]
+                        rounded-full
+                        bg-white
+                        text-black
+                        font-bold
+                        hover:bg-[#d7dbdc]
+                        transition
+                      ">
+                      {
+                        isReactivating
+                          ? "Reactivating..."
+                          : "Reactivate Account"
+                      }
+                    </button>
+                  </div>
+                )
+              }
               <button
                 type="submit"
                 disabled={isLoggingIn || !password.trim()}

@@ -48,8 +48,7 @@ export const useAuth = create((set) => ({
       const user = normalize(res.data.payload);
       localStorage.setItem(
         "currentUser",
-        JSON.stringify(user)
-      );
+        JSON.stringify(user));
       set({
         currentUser: user,
         isAuthenticated: true,
@@ -110,22 +109,20 @@ export const useAuth = create((set) => ({
   },
 
   updateCurrentUser: (updatedUser) => {
-
-  const normalizedUser = normalize(updatedUser);
-  localStorage.setItem(
-    "currentUser",
-    JSON.stringify(normalizedUser)
-  );
-
-  set({
-    currentUser: normalizedUser,
-    isAuthenticated: true,
-    isAdmin: normalizedUser?.isAdmin ?? false,
-  });
-
-},
+    const normalizedUser = normalize(updatedUser);
+    localStorage.setItem(
+      "currentUser",
+      JSON.stringify(normalizedUser)
+    );
+    set({
+      currentUser: normalizedUser,
+      isAuthenticated: true,
+      isAdmin: normalizedUser?.isAdmin ?? false,
+    });
+  },
 
   clearError: () => set({ error: null }),
+  
   resetAuth: () => set({
     currentUser: null,
     isAuthenticated: false,

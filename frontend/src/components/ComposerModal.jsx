@@ -26,8 +26,7 @@ function ComposerModal({ closeModal }) {
         sm:pt-[5vh]
         overflow-y-auto
         overflow-x-hidden
-      "
-      onClick={closeModal}
+      " onClick={closeModal}
     >
       {/* Modal box — fully opaque, floats on desktop, full screen on mobile */}
       <div
@@ -46,8 +45,7 @@ function ComposerModal({ closeModal }) {
           mb-4
           overflow-y-auto
           overflow-x-hidden
-        "
-        onClick={(e) => e.stopPropagation()}
+        " onClick={(e) => e.stopPropagation()}
       >
         {/* TOP BAR */}
         <div className="
@@ -60,7 +58,8 @@ function ComposerModal({ closeModal }) {
           sticky top-0
           bg-[#000000]
           z-10
-        ">
+        "
+        >
           <button
             onClick={closeModal}
             className="

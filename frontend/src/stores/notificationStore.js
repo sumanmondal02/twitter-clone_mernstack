@@ -59,8 +59,7 @@ export const useNotificationStore = create((set, get) => ({
       }));
     } catch (err) {
       console.log(err);
-    }
-  },
+    }},
 
   deleteNotification: async (id) => {
     try {
@@ -70,8 +69,7 @@ export const useNotificationStore = create((set, get) => ({
       }));
     } catch (err) {
       console.log(err);
-    }
-  },
+    }},
 
   clearAll: async () => {
     try {
@@ -79,6 +77,5 @@ export const useNotificationStore = create((set, get) => ({
       set({ notifications: [], unreadCount: 0 });
     } catch (err) {
       console.log(err);
-    }
-  },
+    }},
 }));

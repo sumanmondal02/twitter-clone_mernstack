@@ -12,11 +12,7 @@ notificationRoute.get('/', verifyToken, async (req, res, next) => {
             .limit(20)
             .populate("fromUserId", "username firstName lastName profileImageUrl")
             .populate("postId", "description");
-
-        return res.status(200).json({
-            message: "Notifications fetched",
-            payload: notifications
-        });
+        return res.status(200).json({message: "Notifications fetched", payload: notifications});
     } catch (err) {
         next(err);
     }
@@ -49,53 +45,22 @@ notificationRoute.get('/unreadcount', verifyToken, async (req, res, next) => {
 });
 
 // MARK SINGLE NOTIFICATION AS READ
-notificationRoute.patch(
-  '/markread/:id',
-  verifyToken,
-  async (req, res, next) => {
-
+notificationRoute.patch('/markread/:id', verifyToken, async (req, res, next) => {
     try {
-
-      const notification =
-        await NotificationModel.findById(
-          req.params.id
-        );
-
+      const notification = await NotificationModel.findById(req.params.id);
       if (!notification) {
-
-        return res.status(404).json({
-          message:
-            "Notification not found"
-        });
-
+        return res.status(404).json({message:"Notification not found"});
       }
-
       if (
-        notification.toUserId.toString() !==
-        req.user.id.toString()
-      ) {
-
-        return res.status(403).json({
-          message: "Not authorized"
-        });
-
+        notification.toUserId.toString() !== req.user.id.toString()) {
+        return res.status(403).json({message: "Not authorized"});
       }
-
       notification.isRead = true;
-
       await notification.save();
-
-      return res.status(200).json({
-        message:
-          "Notification marked as read"
-      });
-
+      return res.status(200).json({message:"Notification marked as read"});
     } catch (err) {
-
       next(err);
-
     }
-
   }
 );
 

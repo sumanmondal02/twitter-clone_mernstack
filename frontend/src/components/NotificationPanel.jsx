@@ -42,9 +42,12 @@ function NotificationPanel({ isOpen, onClose }) {
 
   const getMessage = (n) => {
     const name = `${n.fromUserId?.firstName} ${n.fromUserId?.lastName}`;
-    if (n.type === "like") return <><span className="font-bold text-white">{name}</span> <span className="text-[#71767b]">liked your post</span></>;
-    if (n.type === "comment") return <><span className="font-bold text-white">{name}</span> <span className="text-[#71767b]">replied to your post</span></>;
-    if (n.type === "follow") return <><span className="font-bold text-white">{name}</span> <span className="text-[#71767b]">followed you</span></>;
+    if (n.type === "like") return <><span className="font-bold text-white">{name}</span> <span className="text-[#71767b]">
+      liked your post</span></>;
+    if (n.type === "comment") return <><span className="font-bold text-white">{name}</span> <span className="text-[#71767b]">
+      replied to your post</span></>;
+    if (n.type === "follow") return <><span className="font-bold text-white">{name}</span> <span className="text-[#71767b]">
+      followed you</span></>;
   };
 
   const handleNotifClick = (n) => {
@@ -61,7 +64,8 @@ function NotificationPanel({ isOpen, onClose }) {
       />
 
       {/* DESKTOP PANEL */}
-      <div className="hidden sm:flex fixed top-0 left-0 z-[999] h-full w-[420px] bg-[#0a0a0a]/90 backdrop-blur-md border-r border-[#2f3336] flex-col rounded-r-2xl animate-slide-in">
+      <div className="hidden sm:flex fixed top-0 left-0 z-[999] h-full w-[420px] bg-[#0a0a0a]/90 
+      backdrop-blur-md border-r border-[#2f3336] flex-col rounded-r-2xl animate-slide-in">
 
         {/* HEADER */}
         <div className="flex flex-col px-4 pt-4 pb-3 border-b border-[#2f3336] gap-3">
@@ -129,7 +133,8 @@ function NotificationPanel({ isOpen, onClose }) {
       </div>
 
       {/* MOBILE PANEL — bottom sheet */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-[999] h-[75vh] bg-[#0a0a0a]/90 backdrop-blur-md border-t border-[#2f3336] rounded-t-3xl flex flex-col animate-slide-up">
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-[999] h-[75vh] bg-[#0a0a0a]/90 backdrop-blur-md border-t border-[#2f3336] 
+      rounded-t-3xl flex flex-col animate-slide-up">
 
         {/* DRAG HANDLE */}
         <div className="flex justify-center pt-3 pb-1">

@@ -23,28 +23,34 @@ function Terms() {
         <section className="mb-8">
             <h2 className="text-[20px] font-bold mb-3">Welcome to X Clone</h2>
             <p className="text-[#e7e9ea] text-[15px] leading-relaxed">
-            X Clone is a social media platform built for sharing thoughts, connecting with people, and exploring content. By using this platform, you agree to these terms. This is a personal project — not a commercial product — built to demonstrate full-stack development skills.
+            X Clone is a social media platform built for sharing thoughts, connecting with people, and exploring content. 
+            By using this platform, you agree to these terms. This is a personal project — not a commercial product — built to demonstrate full-stack development skills.
             </p>
         </section>
 
         <section className="mb-8">
             <h2 className="text-[20px] font-bold mb-3">Your Account</h2>
             <p className="text-[#e7e9ea] text-[15px] leading-relaxed">
-            You are responsible for your account and everything that happens under it. Keep your password safe. You must be a real person — bots and automated accounts are not allowed. We reserve the right to suspend accounts that violate community standards or disrupt the platform.
+            You are responsible for your account and everything that happens under it. Keep your password safe. 
+            You must be a real person — bots and automated accounts are not allowed. 
+            We reserve the right to suspend accounts that violate community standards or disrupt the platform.
             </p>
         </section>
 
         <section className="mb-8">
             <h2 className="text-[20px] font-bold mb-3">What You Post</h2>
             <p className="text-[#e7e9ea] text-[15px] leading-relaxed">
-            You own what you post. By posting on X Clone, you give us permission to display it on the platform. Don't post anything illegal, hateful, or harmful. Posts can be soft-deleted (archived) — they stay in our system but won't be visible publicly.
+            You own what you post. By posting on X Clone, you give us permission to display it on the platform. 
+            Don't post anything illegal, hateful, or harmful. Posts can be soft-deleted (archived) — 
+            they stay in our system but won't be visible publicly.
             </p>
         </section>
 
         <section className="mb-8">
             <h2 className="text-[20px] font-bold mb-3">Platform Rules</h2>
             <p className="text-[#e7e9ea] text-[15px] leading-relaxed">
-            Be respectful. Don't spam, harass, or impersonate others. Scheduled posts, likes, comments, and follows are features — don't abuse them. Admins can block or deactivate accounts that break these rules.
+            Be respectful. Don't spam, harass, or impersonate others. Scheduled posts, likes, comments, and follows are features — 
+            don't abuse them. Admins can block or deactivate accounts that break these rules.
             </p>
         </section>
 

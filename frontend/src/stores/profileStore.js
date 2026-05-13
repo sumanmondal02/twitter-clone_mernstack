@@ -15,20 +15,15 @@ export const useProfile = create((set) => ({
   async getProfile(username) {
     try {
       set({ isLoading: true, profileNotFound: false });
-
       const res = await axios.get(
         `${API}/user-api/profile/${username}`
       );
-
       set({
         profile: res.data.payload,
         isOwnProfile: res.data.isOwnProfile,
         isFollowing: res.data.isFollowing,
       });
-
-    } catch (err) {
-      console.log(err);
-
+    } catch (err) {console.log(err);
       set({
         profile: null,
         profileNotFound: true,
@@ -49,7 +44,6 @@ export const useProfile = create((set) => ({
       await axios.post(
         `${API}/user-api/follow/${userId}`
       );
-
       set((state) => ({
         isFollowing: true,
         profile: {
@@ -68,7 +62,6 @@ export const useProfile = create((set) => ({
       await axios.delete(
         `${API}/user-api/unfollow/${userId}`
       );
-
       set((state) => ({
         isFollowing: false,
         profile: {
@@ -77,8 +70,7 @@ export const useProfile = create((set) => ({
             Math.max(
               0,
               (state.profile?.followerCount || 0) - 1
-            ),
-        },
+            ),},
       }));
     } catch (err) {
       console.log(err);

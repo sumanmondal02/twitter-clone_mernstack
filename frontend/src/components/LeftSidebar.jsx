@@ -74,7 +74,8 @@ function LeftSidebar() {
         <div className="relative">
           {notifOpen ? <RiNotification3Fill className={s.navIcon} /> : <RiNotification3Line className={s.navIcon} />}
           {unreadCount > 0 && (
-            <div className="absolute -top-1 -right-1 w-[18px] h-[18px] bg-[#1d9bf0] rounded-full flex items-center justify-center text-white text-[10px] font-bold">
+            <div className="absolute -top-1 -right-1 w-[18px] h-[18px] bg-[#1d9bf0] rounded-full flex items-center justify-center
+            text-white text-[10px] font-bold">
               {unreadCount > 9 ? "9+" : unreadCount}
             </div>
           )}

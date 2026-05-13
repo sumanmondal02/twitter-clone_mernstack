@@ -105,8 +105,7 @@ adminRoute.get('/stats', verifyToken, verifyAdmin, async (req, res, next) => {
         ]);
         const activeUsers = totalUsers - blockedUsers - deactivatedUsers;
         
-        res.status(200).json({
-            message: "Dashboard stats",
+        res.status(200).json({ message: "Dashboard stats",
             payload: { totalUsers, blockedUsers, deactivatedUsers, totalPosts, deletedPosts, activeUsers }
         });
     } catch (err) { next(err); }

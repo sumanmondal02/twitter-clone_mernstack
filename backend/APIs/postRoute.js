@@ -336,7 +336,9 @@ postRoute.post('/comment/:id', verifyToken, async (req, res, next) => {
                 postId: postId
             });
         }
-        const populatedPost = await PostModel.findById(postId).populate("userId", "username firstName lastName profileImageUrl").populate("comments.userId", "username firstName lastName profileImageUrl");
+        const populatedPost = await PostModel.findById(postId)
+        .populate("userId", "username firstName lastName profileImageUrl")
+        .populate("comments.userId", "username firstName lastName profileImageUrl");
         return res.status(200).json({ message: "Comment added successfully", payload: populatedPost });
     } catch (err) {
         next(err);
@@ -379,7 +381,9 @@ postRoute.delete('/delcomment/:postId/:commentId', verifyToken, async (req, res,
             postId: postId,
             type: "comment"
         });
-        const populatedPost = await PostModel.findById(postId).populate("userId", "username firstName lastName profileImageUrl").populate("comments.userId", "username firstName lastName profileImageUrl");
+        const populatedPost = await PostModel.findById(postId)
+        .populate("userId", "username firstName lastName profileImageUrl")
+        .populate("comments.userId", "username firstName lastName profileImageUrl");
         return res.status(200).json({ message: "Comment deleted successfully", payload: populatedPost });
     } catch (err) {
         next(err);
@@ -522,7 +526,6 @@ postRoute.get("/profile-posts/:username", verifyToken, async (req, res, next) =>
       const limit = parseInt(req.query.limit) || 10;
       const skip = (page - 1) * limit;
       const total = await PostModel.countDocuments(query);
-
       // FETCH POSTS
       const posts = await PostModel.find(query).sort({createdAt: -1}).skip(skip).limit(limit)
           .populate("userId",
@@ -578,20 +581,16 @@ postRoute.get("/replies/:username", verifyToken, async (req, res, next) => {
         }).sort({createdAt: -1,})
           .populate(
             "userId",
-            `
-            username
+            `username
             firstName
             lastName
-            profileImageUrl
-            `
+            profileImageUrl`
           ).populate(
             "comments.userId",
-            `
-            username
+            `username
             firstName
             lastName
-            profileImageUrl
-            `
+            profileImageUrl`
           );
       const replies = [];
       posts.forEach((post) => {post.comments.forEach((comment) => {
@@ -622,15 +621,12 @@ postRoute.get("/liked-posts/:username", verifyToken, async (req, res, next) => {
   try {
     const username = req.params.username.toLowerCase().trim();
     const profileUser = await UserModel.findOne({ username });
-
     if (!profileUser) {
       return res.status(404).json({ message: "User not found" });
     }
-
     if (profileUser._id.toString() !== req.user.id.toString()) {
       return res.status(403).json({ message: "Not authorized" });
     }
-
     const posts = await PostModel.find({
       likes: { $elemMatch: { userId: profileUser._id } },
       isDeleted: false,
@@ -639,7 +635,6 @@ postRoute.get("/liked-posts/:username", verifyToken, async (req, res, next) => {
       .populate("userId", "username firstName lastName profileImageUrl")
       .populate("comments.userId", "username firstName lastName profileImageUrl")
       .populate("likes.userId", "username firstName lastName profileImageUrl");
-
     // Sort by when THIS user liked each post (the like entry's createdAt)
     const sorted = posts.sort((a, b) => {
       const likeA = a.likes.find(
@@ -652,13 +647,11 @@ postRoute.get("/liked-posts/:username", verifyToken, async (req, res, next) => {
       );
       return new Date(likeB?.createdAt || 0) - new Date(likeA?.createdAt || 0);
     });
-
     return res.status(200).json({
       success: true,
       message: "Liked posts fetched",
       payload: sorted,
     });
-
   } catch (err) {
     next(err);
   }
@@ -670,12 +663,10 @@ postRoute.get("/hashtag/:tag", verifyToken, async (req, res, next) => {
     const tag = decodeURIComponent(req.params.tag);
     const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const regex = new RegExp(`#${escaped}`, "i");
-
     const unavailableUsers = await UserModel.find({
       $or: [{ isBlocked: true }, { isDeactivated: true }]
     }).select("_id");
     const unavailableIds = unavailableUsers.map(u => u._id);
-
     const posts = await PostModel.find({
       description: { $regex: regex },
       isDeleted: false,
@@ -687,7 +678,6 @@ postRoute.get("/hashtag/:tag", verifyToken, async (req, res, next) => {
       .populate("userId", "username firstName lastName profileImageUrl")
       .populate("comments.userId", "username firstName lastName profileImageUrl")
       .populate("likes.userId", "username firstName lastName profileImageUrl");
-
     return res.status(200).json({
       success: true,
       message: "Hashtag posts fetched",
@@ -705,14 +695,12 @@ postRoute.get("/trending", verifyToken, async (req, res, next) => {
       $or: [{ isBlocked: true }, { isDeactivated: true }]
     }).select("_id");
     const unavailableIds = unavailableUsers.map(u => u._id);
-
     const posts = await PostModel.find({
       isDeleted: false,
       isPublished: true,
       userId: { $nin: unavailableIds },
       description: { $regex: /#\w+/, $options: "i" }
     }).select("description").limit(500);
-
     const counts = {};
     posts.forEach((post) => {
       const tags = post.description.match(/#\w+/gi) || [];
@@ -721,12 +709,10 @@ postRoute.get("/trending", verifyToken, async (req, res, next) => {
         counts[t] = (counts[t] || 0) + 1;
       });
     });
-
     const trending = Object.entries(counts)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5)
       .map(([tag, count]) => ({ tag, count }));
-
     return res.status(200).json({ success: true, payload: trending });
   } catch (err) {
     next(err);

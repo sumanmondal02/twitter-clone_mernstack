@@ -23,28 +23,33 @@ function Privacy() {
         <section className="mb-8">
             <h2 className="text-[20px] font-bold mb-3">What We Collect</h2>
             <p className="text-[#e7e9ea] text-[15px] leading-relaxed">
-            When you register, we collect your name, username, email, and password (hashed — never stored as plain text). When you use the platform, we store your posts, comments, likes, follows, and profile image. That's it. We don't sell your data or run ads.
+            When you register, we collect your name, username, email, and password (hashed — never stored as plain text). 
+            When you use the platform, we store your posts, comments, likes, follows, and profile image. That's it. 
+            We don't sell your data or run ads.
             </p>
         </section>
 
         <section className="mb-8">
             <h2 className="text-[20px] font-bold mb-3">How We Use It</h2>
             <p className="text-[#e7e9ea] text-[15px] leading-relaxed">
-            Your data is used to run the platform — showing your feed, profile, notifications, and letting others find and follow you. Profile images are stored on Cloudinary. We use JWT tokens stored in HTTP-only cookies to keep you logged in securely.
+            Your data is used to run the platform — showing your feed, profile, notifications, and letting others find and follow you. 
+            Profile images are stored on Cloudinary. We use JWT tokens stored in HTTP-only cookies to keep you logged in securely.
             </p>
         </section>
 
         <section className="mb-8">
             <h2 className="text-[20px] font-bold mb-3">Who Sees Your Data</h2>
             <p className="text-[#e7e9ea] text-[15px] leading-relaxed">
-            Your posts and profile are visible to other logged-in users. Your email is never shown publicly. Deleted (archived) posts are only visible to you when you filter by "Archived" on your profile. Other users cannot see them.
+            Your posts and profile are visible to other logged-in users. Your email is never shown publicly. 
+            Deleted (archived) posts are only visible to you when you filter by "Archived" on your profile. Other users cannot see them.
             </p>
         </section>
 
         <section className="mb-8">
             <h2 className="text-[20px] font-bold mb-3">Your Control</h2>
             <p className="text-[#e7e9ea] text-[15px] leading-relaxed">
-            You can update your profile, change your username, remove your profile picture, or deactivate your account at any time from your profile settings. Deactivating your account makes it invisible to others immediately.
+            You can update your profile, change your username, remove your profile picture, or deactivate your account at any time from your profile settings. 
+            Deactivating your account makes it invisible to others immediately.
             </p>
         </section>
 

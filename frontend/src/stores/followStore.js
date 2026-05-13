@@ -4,7 +4,6 @@ import axios from "axios";
 const API = import.meta.env.VITE_URL;
 
 export const useFollowStore = create((set, get) => ({
-
   followers: [],
   following: [],
   isLoadingFollowers: false,
@@ -106,5 +105,4 @@ export const useFollowStore = create((set, get) => ({
       console.log(err);
     }
   },
-
 }));

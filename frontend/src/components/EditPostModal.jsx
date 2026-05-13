@@ -2,15 +2,8 @@ import { useState } from "react";
 import { RiCloseLine } from "react-icons/ri";
 import { usePost } from "../stores/postStore";
 
-function EditPostModal({
-  post,
-  closeModal,
-}) {
-
-  const {
-    editPost,
-  } = usePost();
-
+function EditPostModal({post,closeModal,}) {
+  const {editPost,} = usePost();
   const [
     description,
     setDescription,
@@ -23,27 +16,12 @@ function EditPostModal({
     setIsSaving,
   ] = useState(false);
 
-  const handleSave =
-    async () => {
-
-      if (
-        !description.trim()
-      ) return;
-
+  const handleSave = async () => {
+      if (!description.trim()) return;
       try {
-
         setIsSaving(true);
-
-        const res =
-          await editPost(
-            post._id,
-            description
-          );
-
-        if (res.success) {
-          closeModal();
-        }
-
+        const res = await editPost(post._id, description);
+        if (res.success) {closeModal();}
       } finally {
         setIsSaving(false);
       }
@@ -60,14 +38,11 @@ function EditPostModal({
         justify-center
         items-start
         sm:pt-[5vh]
-      "
-      onClick={closeModal}
+      " onClick={closeModal}
     >
 
       <div
-        onClick={(e) =>
-          e.stopPropagation()
-        }
+        onClick={(e) => e.stopPropagation()}
         className="
           w-full
           sm:max-w-[600px]
@@ -78,7 +53,6 @@ function EditPostModal({
           overflow-hidden
         "
       >
-
         {/* TOP */}
         <div
           className="
@@ -88,7 +62,6 @@ function EditPostModal({
             px-4
           "
         >
-
           <button
             onClick={closeModal}
             className="
@@ -108,14 +81,9 @@ function EditPostModal({
 
         {/* BODY */}
         <div className="p-4">
-
           <textarea
             value={description}
-            onChange={(e) =>
-              setDescription(
-                e.target.value
-              )
-            }
+            onChange={(e) => setDescription(e.target.value)}
             placeholder="What's happening?"
             className="
               w-full
@@ -131,10 +99,7 @@ function EditPostModal({
 
             <button
               onClick={handleSave}
-              disabled={
-                isSaving ||
-                !description.trim()
-              }
+              disabled={isSaving || !description.trim()}
               className="
                 bg-[#1d9bf0]
                 hover:bg-[#1a8cd8]
@@ -151,11 +116,8 @@ function EditPostModal({
             </button>
 
           </div>
-
         </div>
-
       </div>
-
     </div>
   );
 }

@@ -7,7 +7,7 @@ export const useSearchStore = create((set) => ({
   results: [],
   isSearching: false,
   query: "",
-
+  
   setQuery: (q) => set({ query: q }),
 
   searchUsers: async (q) => {

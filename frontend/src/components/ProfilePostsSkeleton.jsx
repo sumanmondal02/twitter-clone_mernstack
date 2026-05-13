@@ -1,11 +1,7 @@
 function ProfilePostsSkeleton() {
-
   return (
-
     <div className="animate-pulse">
-
       {[1,2,3].map((item) => (
-
         <div
           key={item}
           className="
@@ -17,7 +13,6 @@ function ProfilePostsSkeleton() {
             gap-3
           "
         >
-
           <div
             className="
               w-12
@@ -28,7 +23,6 @@ function ProfilePostsSkeleton() {
           />
 
           <div className="flex-1">
-
             <div
               className="
                 h-4
@@ -69,15 +63,10 @@ function ProfilePostsSkeleton() {
             />
 
           </div>
-
         </div>
-
       ))}
-
     </div>
-
   );
-
 }
 
 export default ProfilePostsSkeleton;
