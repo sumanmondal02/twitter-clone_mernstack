@@ -29,7 +29,8 @@ function ResetPassword() {
             setMessage("");
             const res = await axios.put(
                 `${API}/auth/reset-password/${token}`,
-                { newPassword }
+                { newPassword },
+                { withCredentials: true }
             );
             setMessage(res.data.message);
             setTimeout(() => {
