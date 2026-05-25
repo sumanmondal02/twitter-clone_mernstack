@@ -44,7 +44,7 @@ function LandingPage() {
         </button>
          <p className={s.landingDisclaimer}>
           By <span className="transition hover:underline cursor-pointer" onClick={() => navigate("/register")}>signing up</span>
-          , you agree to the <span className="hover:underline cursor-pointer" onClick={() => navigate("/terms")}>Terms of Service</span> 
+          , you agree to the <span className="hover:underline cursor-pointer" onClick={() => navigate("/terms")}>Terms of Service </span> 
           and <span className="hover:underline cursor-pointer" onClick={() => navigate("/privacy")}>Privacy Policy</span>.
         </p>
         <p className={s.landingDivider}>
