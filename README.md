@@ -6,15 +6,18 @@ A full-stack social media platform replicating core Twitter functionality with m
 
 ### Web Version
 <p align="center">
-  <img src="frontend/public/web-home.png" width="45%" />
-  <img src="frontend/public/web-profile.png" width="45%" />
+  <img src="frontend/public/landingPageW.png" width="45%" />
+  <img src="frontend/public/signInW.png" width="45%" />
+  <img src="frontend/public/homeW.png" width="45%" />
+  <img src="frontend/public/profileW.png" width="45%" />
+  <img src="frontend/public/notificationW.png" width="45%" />
 </p>
 
 ### Mobile Version
 <p align="center">
   <img src="frontend/public/mobile-home.png" width="30%" />
   <img src="frontend/public/mobile-profile.png" width="30%" />
-  <img src="frontend/public/mobile-search.png" width="30%" />
+  <img src="frontend/public/mobile-post.png" width="30%" />
 </p>
 
 ## ⚡ Tech Stack
