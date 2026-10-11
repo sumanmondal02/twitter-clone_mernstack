@@ -3,7 +3,9 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import "./config/scheduledPostWorker.js";
 import {config} from "dotenv";
-import {connect, connection} from "mongoose";
+// import {connect, connection} from "mongoose";
+import mongoose from "mongoose";
+const { connect } = mongoose;
 import {userRoute} from "./APIs/userRoute.js";
 import {postRoute} from "./APIs/postRoute.js";
 import {adminRoute} from "./APIs/adminRoute.js";
@@ -41,13 +43,29 @@ app.use(cookieParser());
 // JSON body parser middleware
 app.use(exp.json());
 
-// health check, used by UptimeRobot to keep the server and MongoDB awake
+// // health check, used by UptimeRobot to keep the server and MongoDB awake
+// app.get("/ping", async (req, res) => {
+//     try {
+//         await connection.db.admin().ping();
+//         res.json({ status: "ok" });
+//     } catch (error) {
+//         res.status(503).json({ status: "db_unreachable" });
+//     }
+// });
+
+// Health check for the API and MongoDB
 app.get("/ping", async (req, res) => {
     try {
-        await connection.db.admin().ping();
-        res.json({ status: "ok" });
+        await mongoose.connection.db.admin().ping();
+        res.status(200).json({
+            status: "ok",
+            database: "connected"
+        });
     } catch (error) {
-        res.status(503).json({ status: "db_unreachable" });
+        res.status(503).json({
+            status: "error",
+            database: "unreachable"
+        });
     }
 });
 
